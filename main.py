@@ -258,9 +258,9 @@ def main(args):
 
     System.load_session(_c)
 
-    # if(_c.mode == "" or _c.mode == None):
-    #     print("[!] Missing Mode!!! \r\n")
-    #     help()
+    if(_c.mode == "" or _c.mode == None):
+        print("[!] Missing Mode!!! \r\n")
+        help()
 
     # sys.exit(0);
 

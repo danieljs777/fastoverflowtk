@@ -244,11 +244,16 @@ class System:
                         print("[!] Session restored from " + session_file_path)
 
                     else:
-                        with codecs.open(session_file_path, 'r', 'utf-8') as session_file:
-                            # session_data =
-                            session = json.load(session_file)
-                            print(session)
 
+                        with io.open(session_file_path, 'r', encoding='windows-1252') as session_file:
+                            for line in session_file:
+                                session = json.loads(line)
+
+                        # with codecs.open(session_file_path, 'r', 'utf-8') as session_file:
+                        #     # session_data =
+                        #     session = json.load(session_file)
+                        #     print(session)
+                        #
                             for object in session:
                                 # print(("[+] Selected %s: %s") % (object, str(session[object])))
 

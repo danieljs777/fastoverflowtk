@@ -104,19 +104,19 @@ class Ftp:
                 # _buf = (field + ' ' + buffer + '\r\n').encode()
                 #
                 # s.sendall(_buf)
-                if (sys.version_info >= (3, 0)):
-                    print(type(field))
-                    print(type(buffer))
-                    #cmd = bytes(field + ' ' + buffer.decode('latin-1') + '\r\n', 'latin-1')
-                    cmd = (field + ' ' + buffer.decode('latin-1') + '\r\n').encode('latin-1')
-
-                    cmd = self.prepare_command((field + ' ' + buffer.decode('latin-1') + '\r\n'))
-
-                    print(cmd)
-                else:
-                    print(type(field))
-                    print(type(buffer))
-                    cmd = field + ' ' + buffer + '\r\n'
+                # if (sys.version_info >= (3, 0)):
+                #     print(type(field))
+                #     print(type(buffer))
+                #     #cmd = bytes(field + ' ' + buffer.decode('latin-1') + '\r\n', 'latin-1')
+                #     cmd = (field + ' ' + buffer.decode('latin-1') + '\r\n').encode('latin-1')
+                #
+                #     cmd = self.prepare_command((field + ' ' + buffer.decode('latin-1') + '\r\n'))
+                #
+                #     print(cmd)
+                # else:
+                # print(type(field))
+                # print(type(buffer))
+                cmd = self.prepare_command(field + ' ' + buffer.decode('latin-1') + '\r\n')
 
                 s.sendall((cmd))
 
