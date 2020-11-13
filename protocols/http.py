@@ -85,12 +85,12 @@ class Http():
             if (s == None):
                 return responses
 
-            print("=" * 100)
-            print("Sending request:")
-            print(request)
-            print("=" * 100)
+            if (self.config.verbose_lv == 2):
+                print("REQUEST BEGIN" + ("=" * 100))
+                print(request)
+                print(("=" * 100) + " REQUEST END")
 
-            s.send(request)
+            s.sendall(Tcp.prepare_command(request.decode('latin-1')))
 
             responses.append(s.recv(2048))
             print(responses[-1])
@@ -122,7 +122,7 @@ class Http():
         while len(streaming) > 0:
             self.make_request(ip, port, field, None, None, size)
 
-            print('Overflowing [' + str(size) + ' bytes]')
+            print('[.] Trying to overflow [' + str(size) + ' bytes]')
 
             streaming = (self.inject(ip, port, self.request, None, None))
 

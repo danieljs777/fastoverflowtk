@@ -56,7 +56,7 @@ class FastOverflow:
         print("[9] Show Exploit Session")
         print("[0] Exit")
 
-        process = System.input("Select one above ")
+        process = System.input("Select one above :")
 
         if (process == "1"):
             self.generic_fuzzer()
@@ -273,9 +273,9 @@ def main(args):
         if save == "Y":
             System.save_session(_c)
 
-        _f.menu()
+        # _f.menu()
         # clear()
-        #sys.exit(1)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

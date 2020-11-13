@@ -5,6 +5,7 @@ class Config:
 
     localip = "172.16.18.1"
     localport = 7777
+    verbose_lv = 0
 
     remoteip = ""
     remoteport = 0

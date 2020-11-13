@@ -225,7 +225,8 @@ class System:
 
             if os.path.isfile(session_file_path):
 
-                print("[!] Session found at " + session_file_path)
+                if (config.verbose_lv >= 1):
+                    print("[!] Session found at " + session_file_path)
 
                 try:
 
@@ -234,7 +235,9 @@ class System:
                         with io.open(session_file_path, 'rb', buffering=0) as session_file:
                             # session_data =
                             session = json.load(session_file)
-                            print(session)
+
+                            if (config.verbose_lv >= 1):
+                                print(session)
 
                             for object in session:
                                 # print(("[+] Selected %s: %s") % (object, str(session[object])))
@@ -252,8 +255,9 @@ class System:
                         # with codecs.open(session_file_path, 'r', 'utf-8') as session_file:
                         #     # session_data =
                         #     session = json.load(session_file)
-                        #     print(session)
-                        #
+                            if (config.verbose_lv >= 1):
+                                print(session)
+
                             for object in session:
                                 # print(("[+] Selected %s: %s") % (object, str(session[object])))
 
@@ -320,12 +324,10 @@ class System:
         with io.open("shellcode_" + config.platform, 'rb', buffering=0) as session_file:
             esp = session_file.readall()
 
-        print("=" * 30)
-        print(esp)
-        #
-        # exit()
-
-        print("=" * 30)
+        if (config.verbose_lv >= 1):
+            print("=" * 30)
+            print(esp)
+            print("=" * 30)
 
         return esp
 

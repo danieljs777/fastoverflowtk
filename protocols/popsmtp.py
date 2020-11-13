@@ -33,29 +33,31 @@ class PopSmtp:
             if (stop_on_field == None):
                 stop_on_field = False
 
-            print("=" * 100)
-            print(buffer)
+            if (self.config.verbose_lv == 2):
+                print("BUFFER BEGIN" + ("=" * 100))
+                print(buffer)
+                print(("=" * 100) + " BUFFER END")
 
             strlen = str(len(buffer))
 
-            print("Injecting %s bytes" % strlen)
+            print("[!] Injecting %s bytes" % strlen)
             s = Tcp.connect(remoteip, port)
 
-            print("Socket")
-            print(s)
+            if (self.config.verbose_lv == 2):
+                print(s)
 
             if (s == None):
                 return responses
 
             print(s.recv(2048))
-            print("Overflowing %s ..." % field)
+            print("[.] Trying to overflow %s ..." % field)
 
             if (field != "user"):
                 print('USER user')
                 s.send('USER user\r\n')
             else:
                 print('USER [' + strlen + ' bytes]')
-                s.send('USER ' + buffer + '\r\n')
+                s.send('USER ' + Tcp.prepare_command(buffer.decode('latin-1')) + '\r\n')
             # if(stop_on_field):
             # response = s.recv(2048)
             # print(response)
@@ -67,10 +69,10 @@ class PopSmtp:
 
             if (field != "pass"):
                 print('PASS pass')
-                s.send('PASS pass\r\n')
+                s.sendall('PASS pass\r\n')
             else:
                 print('PASS [' + strlen + ' bytes]')
-                s.send('PASS ' + buffer + '\r\n')
+                s.sendall('PASS ' + Tcp.prepare_command(buffer.decode('latin-1')) + '\r\n')
             # if(stop_on_field):
             # response = s.recv(2048)
             # print(response)
@@ -82,7 +84,7 @@ class PopSmtp:
 
             if (field != "user" and field != "pass"):
                 print(field + ' [' + strlen + ' bytes]')
-                s.send(field + ' ' + buffer + '\r\n')
+                s.sendall(field + ' ' + Tcp.prepare_command(buffer.decode('latin-1')) + '\r\n')
 
                 # if(stop_on_field):
                 # response = s.recv(2048)
@@ -117,7 +119,7 @@ class PopSmtp:
         streaming = [True]
         while len(streaming) > 0:
 
-            streaming = (Ftp.inject(remoteip, port, field, buffer, None))
+            streaming = (self.inject(remoteip, port, field, buffer, None))
 
             if (len(streaming) > 0):
                 streaming[-1].strip()

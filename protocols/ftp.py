@@ -35,9 +35,6 @@ class Ftp:
     ############################
     ## FTP INJECTION
 
-    def prepare_command(self, command):
-        return command.encode('latin-1')
-
     def inject(self, remoteip, port, field, buffer, stop_on_field):
         responses = []
 
@@ -46,33 +43,36 @@ class Ftp:
             if (stop_on_field == None):
                 stop_on_field = False
 
-            print("=" * 100)
-            print(buffer)
+            if (self.config.verbose_lv == 2):
+                print("BUFFER BEGIN" + ("=" * 100))
+                print(buffer)
+                print(("=" * 100) + " BUFFER END")
 
             strlen = str(len(buffer))
+            print("[!] Injecting %s bytes" % strlen)
 
-#            print("Injecting %s bytes" % strlen)
             s = Tcp.connect(remoteip, port)
 
-            # print("Socket")
-            print(s)
+            if (self.config.verbose_lv == 2):
+                print(s)
 
             if (s == None):
                 return responses
 
             print(s.recv(2048))
-            print("Overflowing %s ..." % field)
+            print("[.] Trying to overflow %s ..." % field)
 
             # if (field == "preauth"):
             #     print('[' + strlen + ' bytes]')
             #     s.send(buffer)
 
             if (field != "user"):
-                print(self.prepare_command('USER ' + self.auth_user))
-                s.send(self.prepare_command("USER " + self.auth_user + "\r\n"))
+                print(Tcp.prepare_command('USER ' + self.auth_user))
+                s.sendall(Tcp.prepare_command("USER " + self.auth_user + "\r\n"))
             else:
-                print(self.prepare_command('USER [' + strlen + ' bytes]'))
-                s.send(self.prepare_command('USER ' + buffer + '\r\n'))
+                print(Tcp.prepare_command('USER [' + strlen + ' bytes]'))
+                s.sendall(Tcp.prepare_command('USER ' + buffer.decode('latin-1') + '\r\n'))
+
             # if(stop_on_field):
             # response = s.recv(2048)
             # print(response)
@@ -83,11 +83,12 @@ class Ftp:
             print(responses[-1])
 
             if (field != "pass"):
-                print(self.prepare_command('PASS ' + self.auth_pass))
-                s.sendall(self.prepare_command('PASS ' + self.auth_pass + '\r\n'))
+                print(Tcp.prepare_command('PASS ' + self.auth_pass))
+                s.sendall(Tcp.prepare_command('PASS ' + self.auth_pass + '\r\n'))
             else:
-                print(self.prepare_command('PASS [' + strlen + ' bytes]'))
-                s.sendall(self.prepare_command('PASS ' + buffer + '\r\n'))
+                print(Tcp.prepare_command('PASS [' + strlen + ' bytes]'))
+                s.sendall(Tcp.prepare_command('PASS ' + buffer.decode('latin-1') + '\r\n'))
+
             # if(stop_on_field):
             # response = s.recv(2048)
             # print(response)
@@ -98,7 +99,8 @@ class Ftp:
             print(responses[-1])
 
             if (field != "user" and field != "pass"):
-                print(field + ' [')
+                print(field + ' [ ' + strlen + ' bytes ] ')
+
 #                print buffer.encode('latin-1')  # + ' bytes]')
 
                 # _buf = (field + ' ' + buffer + '\r\n').encode()
@@ -116,9 +118,10 @@ class Ftp:
                 # else:
                 # print(type(field))
                 # print(type(buffer))
-                cmd = self.prepare_command(field + ' ' + buffer.decode('latin-1') + '\r\n')
 
-                s.sendall((cmd))
+                cmd = Tcp.prepare_command(field + ' ' + buffer.decode('latin-1') + '\r\n')
+
+                s.sendall(cmd)
 
                 # if(stop_on_field):
                 # response = s.recv(2048)
