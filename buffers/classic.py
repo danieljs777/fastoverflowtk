@@ -5,7 +5,7 @@ import sys
 import socket
 from struct import pack
 
-from main import FastOverflow
+from fast_overflow import FastOverflow
 from utils.hex import HexUtil
 from utils.system import *
 
