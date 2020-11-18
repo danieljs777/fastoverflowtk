@@ -140,7 +140,7 @@ class System:
 
             # "eip": config.eip,
             # "esp": config.esp,
-            "payload": config.payload,
+            # "payload": config.payload,
             "nops": config.nops,
             "jmpesp_add": config.jmpesp_add,
             "instruction": config.instruction,
@@ -160,7 +160,6 @@ class System:
     @staticmethod
     def save_session(config):
         # Config get attributes
-        # Todo: Fix encoding for jmpesp_add storing and retrieving
 
         session = {
             "localip": config.localip,
@@ -193,7 +192,7 @@ class System:
 
             # "eip": config.eip,
             # "esp": config.esp,
-            "payload": config.payload,
+            # "payload": config.payload,
             "nops": config.nops,
             "jmpesp_add": config.jmpesp_add,
             "instruction": config.instruction,
@@ -207,7 +206,7 @@ class System:
             if (sys.version_info >= (3, 0)):
                 session_file.write(json.dumps(session, ensure_ascii=False))
             else:
-                session_file.write(unicode(json.dumps(session, ensure_ascii=False, encoding='utf8')))
+                session_file.write(unicode(json.dumps(session, ensure_ascii=False, encoding='latin-1')))
 
         # with codecs.open("sessions/" + config.remoteip + "_" + str(config.remoteport) + "_" + config.field + ".restore",
         #                  "w", 'utf-8') as session_file:
@@ -221,7 +220,7 @@ class System:
 
         if True:
             session_file_path = "sessions/" + config.remoteip + "_" + str(config.remoteport) + "_" + config.field + ".restore"
-            print("[!] Searching for " + session_file_path)
+            # print("[!] Searching for " + session_file_path)
 
             if os.path.isfile(session_file_path):
 

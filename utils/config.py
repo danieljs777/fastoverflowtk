@@ -5,7 +5,7 @@ class Config:
 
     localip = "172.16.18.1"
     localport = 7777
-    verbose_lv = 0
+    verbose_lv = 2
 
     remoteip = ""
     remoteport = 0
@@ -17,8 +17,8 @@ class Config:
     http_method = "HEAD"
     http_uri = ""
 
-    user = "user"
-    passwd = "user"
+    user = "anonymous"
+    passwd = "123@test.com"
 
     badchars = ""
     shellcode = ""
@@ -34,8 +34,8 @@ class Config:
     # SEHByPass Attributes
 
     # offset = 1
-    nextseh = "B" * 4
-    seh = "C" * 4
+    nextseh = ""
+    seh = ""
     ppr_address = ""
     # payload = "D" * 400
     # nops = 0
@@ -47,7 +47,7 @@ class Config:
     #offset = 1
     # eip = "B" * 4
     # esp = "C" * 4
-    payload = "D" * 400
+    payload = ""
     nops = 0
     jmpesp_add = ""
     instruction = ""  # "\xeb\xca" #jmp short

