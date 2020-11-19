@@ -1,9 +1,14 @@
 # FastOverflow ToolKit
-I made this toolkit whilsts studying Buffer Overflow Techniques. This toolkit is composed by Memory fuzzer, BadChars Testing, Exploitation process automation and later I will release the Exploit Generator. It works throught FTP, SMTP/POP, HTTP protocols as well generated external files like playlists, exploiting customized variables/commands. It supports Vanilla (classic) buffer overflow technique, SEH ByPass and Egghunter. Additionaly, the toolkit makes use of session files and you can restore your walkthrough by default.
+I made this toolkit whilst studying Buffer Overflow Techniques. This toolkit is composed by Memory fuzzer, BadChars Testing, Exploitation process automation and soon I will release the Exploit Generator. 
 
+It works through FTP, SMTP, POP, HTTP protocols as well generated external files like playlists, exploiting customized variables/commands. 
+
+The toolkit supports Vanilla (classic) buffer overflow technique, SEH ByPass and Egghunting. Additionaly, the toolkit makes use of session files and you can restore your walkthrough by default.
+
+Payloads can be generated through MSFVENOM (shell_reverse_tcp or meterpreter_reverse_tcp) OR you can use your own ASM files.
 ## Prerequisites
 
-Python 3.8, Metasploit
+Python 3.8, Metasploit, nasm, nasm_shell
 
 ## Usage: 
 ### Api Controllers :  
@@ -25,12 +30,13 @@ fast_overflow.py -m [MODE] [-o PLATFORM] [-h HOST] [-p PORT] [-f FIELD] [-U USER
 ```
 ## Testing
 
-This tool was tested against WarFTPd, Ability FTP Server, SLMail, Konica Minolta, Kolibri and some video players.
+This tool was tested against WarFTPd, Ability FTP Server, SLMail, Konica Minolta, Kolibri and some video players running in Python 3.8.
+NOT FULLY SUPPORTED ON PYTHON 2. Improvements need.
 
 
 ## Authors
 
-* **Daniel Jordao** - *Initial work* - [danieljs777](https://github.com/danieljs777)
+* **Daniel Jordão** - *Initial work* - [danieljs777](https://github.com/danieljs777)
 
 ## License
 

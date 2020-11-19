@@ -43,19 +43,24 @@ class Http():
         field_default = False
 
         if (shellcode != None):
-            header_skeleton["User-Agent"] = shellcode
+            header_skeleton["User-Agent"] = shellcode.decode("latin-1")
 
         if (field.upper() == "URI"):
             field_default = True
-            request_header = self.config.http_method + " /" + buffer + " HTTP/1.1\r\n"
+            request_header = self.config.http_method + " /" + str(buffer) + " HTTP/1.1\r\n"
         else:
             request_header = self.config.http_method + " /" + self.config.http_uri + " HTTP/1.1\r\n"
 
         for key in header_skeleton:
+            # print(header_skeleton[key])
+            # print(type(header_skeleton[key]))
+
             if (field.upper() == key.upper()):
                 field_default = True
-                request_header += key + ": " + buffer + "\r\n"
+                request_header += key.encode('latin-1') + ": " + buffer + "\r\n"
             else:
+                # print(key, type(key), header_skeleton[key], (type(header_skeleton[key])), ((header_skeleton[key] == "<class 'str'>")))
+
                 request_header += key + ": " + header_skeleton[key] + "\r\n"
 
         # Todo: Implement cookie buffer in conjunction with line 45
@@ -70,9 +75,14 @@ class Http():
         request_header += "Content-Length: " + str(len(request_data))
         request_header += "\r\n\r\n"
 
+        if (self.config.verbose_lv == 2):
+            print("=" * 50)
+            print(request_header)
+            print("=" * 50)
+
         self.request = request_header + request_data
 
-        return self.request
+        return self.request #str(self.request).encode('latin-1')
 
     ############################
     ## HTTP Request
@@ -90,7 +100,7 @@ class Http():
                 print(request)
                 print(("=" * 100) + " REQUEST END")
 
-            s.sendall(Tcp.prepare_command(request.decode('latin-1')))
+            s.sendall(Tcp.prepare_command((request)))
 
             responses.append(s.recv(2048))
             print(responses[-1])

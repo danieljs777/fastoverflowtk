@@ -20,4 +20,4 @@ class Tcp():
 
     @staticmethod
     def prepare_command(command):
-        return command.encode('latin-1')
+        return str(command).encode('latin-1')

