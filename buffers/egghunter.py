@@ -255,7 +255,9 @@ class EggHunter:
 
             inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
             print("[*] Buffer Injected (" + str(len(exploit)) + " bytes)!!!")
-            print("[*] Check your listener!!!")
+            print("[*] Wait some seconds for egghunting and check your listener!!!")
+
+            System.show_session(self.config)
 
         except Exception as err:
             logging.exception(err)
