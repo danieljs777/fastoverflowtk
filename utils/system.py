@@ -143,7 +143,7 @@ class System:
             # "payload": config.payload,
             "nops": config.nops,
             "jmpesp_add": config.jmpesp_add,
-            "instruction": config.instruction,
+            # "instruction": config.instruction,
             # "hunter": config.hunter,
             "egg": config.egg,
             "src_address": config.src_address,
@@ -197,11 +197,11 @@ class System:
             # "payload": config.payload,
             "nops": config.nops,
             "jmpesp_add": config.jmpesp_add,
-            "instruction": config.instruction,
+            # "instruction": config.instruction,
             # "hunter": config.hunter,
             # "egg": config.egg,
-            "src_address": config.src_address,
-            "dest_address": config.dest_address,
+            "src_address": str(config.src_address),
+            "dest_address": str(config.dest_address),
         }
 
         with open("sessions/" + config.remoteip + "_" + str(config.remoteport) + "_" + config.field + ".restore", "w") as session_file:
@@ -231,7 +231,6 @@ class System:
 
                 try:
 
-                    # in Python  2 you should  always  use  io.open()  with an explicit encoding, or open() with an explicit encoding in Python 3
                     if (sys.version_info >= (3, 0)):
                         with io.open(session_file_path, 'rb', buffering=0) as session_file:
                             # session_data =
@@ -242,13 +241,13 @@ class System:
 
                             for object in session:
                                 # print(("[+] Selected %s: %s") % (object, str(session[object])))
-
                                 setattr(config, object, session[object])
+
 
                         print("[!] Session restored from " + session_file_path)
 
                     else:
-
+                        # in Python  2 you should  always  use  io.open()  with an explicit encoding, or open() with an explicit encoding in Python 3
                         with io.open(session_file_path, 'r', encoding='windows-1252') as session_file:
                             for line in session_file:
                                 session = json.loads(line)
@@ -261,7 +260,6 @@ class System:
 
                             for object in session:
                                 # print(("[+] Selected %s: %s") % (object, str(session[object])))
-
                                 setattr(config, object, session[object])
 
                         print("[!] Session restored from " + session_file_path)

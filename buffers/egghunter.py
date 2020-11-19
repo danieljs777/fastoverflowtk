@@ -109,7 +109,7 @@ class EggHunter:
             buffer = self.stack_fill(False)
 
             if (self.config.verbose_lv >= 1):
-                print("[+] Buffer is aligned in SEH record:")
+                print("[+] Buffer is aligned :")
                 print(buffer)
 
             #########################################################
@@ -181,17 +181,26 @@ class EggHunter:
             #########################################################
             # OP CODES FOR JUMPING BACK
 
-            if (self.config.dest_address == "" and self.config.src_address == ""):
-                _src_address = System.input("[?] Enter the CCCC memory address (eg. 011EFB28) :")
-                _dest_address = System.input("[?] Enter the address to insert EggHunter [" + str(hex(int("0x" + _src_address, 16) - 40)) + "] :")
+            try:
 
-                try:
-                    self.config.src_address = int("0x" + _src_address, 16)
-                    self.config.dest_address = int("0x" + _dest_address, 16)
+                if (self.config.dest_address == "" and self.config.src_address == ""):
+                    _src_address = System.input("[?] Enter the CCCC memory address (eg. 011EFB28) :")
+                    _dest_address = System.input("[?] Enter the address to insert EggHunter [" + _src_address + " - 40 bytes is " + str(hex(int("0x" + _src_address, 16) - 40)).replace("0x", "").upper() + "] : ")
 
-                    diff = hex(self.config.src_address - self.config.dest_address)
-                except Exception as err:
-                    print(str(err))
+                    self.config.src_address = _src_address
+                    self.config.dest_address = _dest_address
+
+                    _src_address = int("0x" + _src_address, 16)
+                    _dest_address = int("0x" + _dest_address, 16)
+
+                else:
+                    _src_address = int("0x" + self.config.src_address, 16)
+                    _dest_address = int("0x" + self.config.dest_address, 16)
+
+                diff = hex(_src_address - _dest_address)
+
+            except Exception as err:
+                print(str(err))
 
             _instruction = System.input("[?] Enter the negative jmp short OPCODE for " + str(diff) + " (Hint: msf-nasm_shell> jmp short -" + str(diff) + ") : ")
             self.config.instruction = binascii.unhexlify(_instruction)
