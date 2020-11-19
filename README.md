@@ -11,7 +11,7 @@ Payloads can be generated through MSFVENOM (shell_reverse_tcp or meterpreter_rev
 Python 3.8, Metasploit, nasm, nasm_shell
 
 ## Usage: 
-### Api Controllers :  
+### Default options :  
 
 ```
 fast_overflow.py -m [MODE] [-o PLATFORM] [-h HOST] [-p PORT] [-f FIELD] [-U USER] [-P PASS] [-i LOCALIP] [-l LOCALPORT] 
