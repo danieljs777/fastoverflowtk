@@ -176,7 +176,7 @@ def main(args):
     print("#" * 100)
     print("")
     print("# FastOverflow v1.0-rc - A toolkit for automating Buffer Overflow process")
-    print("# Currently supporting Vanilla, SEH Bypass, EggHunter through HTTP, FTP, POP/SMTP and File")
+    print("# Currently supporting Vanilla, SEH Bypass, EggHunter through HTTP, FTP, POP, SMTP and File")
     print("")
     print("# By Daniel (daniel@zillius.com.br) ")
     print("")

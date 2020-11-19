@@ -43,13 +43,16 @@ class Http():
         field_default = False
 
         if (shellcode != None):
-            header_skeleton["User-Agent"] = shellcode.decode("latin-1")
+            if(isinstance(shellcode, (bytes))):
+                header_skeleton["User-Agent"] = str(shellcode.decode("latin-1"))
+            else:
+                header_skeleton["User-Agent"] = shellcode
 
         if (field.upper() == "URI"):
             field_default = True
-            request_header = self.config.http_method + " /" + str(buffer) + " HTTP/1.1\r\n"
+            request_header = self.config.http_method + " /" + str(buffer.decode("latin-1")) + "HTTP/1.1\r\n"
         else:
-            request_header = self.config.http_method + " /" + self.config.http_uri + " HTTP/1.1\r\n"
+            request_header = self.config.http_method + " /" + self.config.http_uri + "HTTP/1.1\r\n"
 
         for key in header_skeleton:
             # print(header_skeleton[key])
@@ -57,11 +60,11 @@ class Http():
 
             if (field.upper() == key.upper()):
                 field_default = True
-                request_header += key.encode('latin-1') + ": " + buffer + "\r\n"
+                request_header += key + ": " + str(buffer.decode("latin-1")) + "\r\n"
             else:
-                # print(key, type(key), header_skeleton[key], (type(header_skeleton[key])), ((header_skeleton[key] == "<class 'str'>")))
+                # print(key, type(key), header_skeleton[key], (type(header_skeleton[key])), (isinstance(header_skeleton[key], (str, unicode))))
 
-                request_header += key + ": " + header_skeleton[key] + "\r\n"
+                request_header += key + ": " + str(header_skeleton[key]) + "\r\n"
 
         # Todo: Implement cookie buffer in conjunction with line 45
         # if ("cookie" in field.lower()):
@@ -103,9 +106,9 @@ class Http():
             s.sendall(Tcp.prepare_command((request)))
 
             responses.append(s.recv(2048))
+            print("RESPONSE BEGIN" + ("=" * 100))
             print(responses[-1])
-
-            print("=" * 100)
+            print(("=" * 100) + " RESPONSE END")
 
             s.close()
         except socket.error as error:

