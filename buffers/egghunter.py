@@ -243,7 +243,7 @@ class EggHunter:
                 inject_func(self.config.remoteip, self.config.remoteport, self.config.field, exploit, True)
 
             if(gonext.upper() != "S"):
-                bads = System.input("[+] Default Badchars is " + ",".join(System.badchars) + ". Additional Badchars? Separate multiple HEX (without 0x) by commas :")
+                bads = System.input("[+] Default Badchars is " + ",".join(System.badchars) + ". Additional Badchars? Separate multiple HEX (without 0x) by commas (eg. 1a,40) :")
 
                 if ',' in bads:
                     _bads = bads.split(',')

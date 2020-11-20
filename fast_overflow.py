@@ -29,12 +29,14 @@ class FastOverflow:
     def menu(self):
         print(" ")
         print("-" * 100)
-        print("[1] Fuzzer")
+
+        if (self.config.mode != "file"):
+            print("[1] Fuzzer")
+
         print("[2] Classic Buffer Overflow")
         print("[3] EggHunter Buffer Overflow")
         print("[4] ByPass SEH Buffer Overflow")
         print("[5] Test Multiple Fields")
-        # print("[6] Test BadChars")
 
         if (self.config.mode != "file"):
             print("[6] Search BadChars")

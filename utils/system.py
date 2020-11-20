@@ -38,6 +38,9 @@ class System:
 
         adapter = None
 
+        if(config.mode == "file"):
+            return False;
+
         while adapter == None:
             if(config.mode == "ftp"):
                 adapter = Ftp(config)
@@ -96,7 +99,7 @@ class System:
             eip_value = System.input("[?] Check the target debugger and enter EIP or NSEH Value :")
 
             _offset = subprocess.check_output(['msf-pattern_offset', '-q', str(eip_value)])
-            _offset = _offset.split('offset ')
+            _offset = _offset.decode('latin-1').split('offset ')
 
             config.offset = int(_offset[len(_offset) - 1].strip())
 
@@ -149,7 +152,6 @@ class System:
             "src_address": config.src_address,
             "dest_address": config.dest_address,
         }
-
 
 
         print(session)
@@ -338,9 +340,22 @@ class System:
 
     @staticmethod
     def file_write(filename, data):
-        f = open(filename, "w")
-        f.write(data)
-        f.close()
+
+        with open(filename, "w") as file:
+            if (sys.version_info >= (3, 0)):
+                if not isinstance(data, str):
+                    file.write(data.decode('latin-1'))
+                else:
+                    file.write(data)
+            else:
+                file.write(data)
+
+        # f = open(filename, "w")
+        #
+        # if not isinstance(data, str):
+        #
+        # f.write(data)
+        # f.close()
 
     @staticmethod
     def execute(command, args):

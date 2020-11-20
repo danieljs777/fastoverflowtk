@@ -173,8 +173,9 @@ class Ftp:
             streaming = (self.inject(remoteip, port, field, buffer, None))
 
             if (len(streaming) > 0):
-                streaming[-1].strip()
-                _response = streaming[-1].split(' ')
+                _stream = streaming[-1].decode('latin-1').strip()
+
+                _response = _stream.split(' ')
 
                 # print("[!] ERROR COMMUNICATING TO THE SERVICE " + "|".join(streaming))
                 # responsecode = int(_response[0].strip())
