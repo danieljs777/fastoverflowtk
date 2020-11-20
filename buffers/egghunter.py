@@ -227,6 +227,12 @@ class EggHunter:
             #########################################################
             # BADCHARS
 
+            if self.config.badchars == "":
+                self.config.badchars = System.badchars
+            else:
+                System.badchars = self.config.badchars
+
+            print ("[+] Badchars detected : " + ",".join(self.config.badchars))
             gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip:")
 
             if(gonext.upper() == "T"):

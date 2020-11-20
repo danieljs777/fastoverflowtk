@@ -28,6 +28,8 @@ class PopSmtp:
     def inject(self, remoteip, port, field, buffer, stop_on_field):
         responses = []
 
+        field = field.lower()
+
         try:
 
             if (stop_on_field == None):
@@ -53,11 +55,16 @@ class PopSmtp:
             print("[.] Trying to overflow %s ..." % field)
 
             if (field != "user"):
-                print('USER user')
-                s.send('USER user\r\n')
+                print(Tcp.prepare_command('USER user'))
+                s.sendall(Tcp.prepare_command("USER user\r\n"))
             else:
                 print('USER [' + strlen + ' bytes]')
-                s.send('USER ' + Tcp.prepare_command(buffer.decode('latin-1')) + '\r\n')
+
+                if not isinstance(buffer, str):
+                    s.sendall(Tcp.prepare_command('USER ' + buffer.decode('latin-1') + '\r\n'))
+                else:
+                    s.sendall(Tcp.prepare_command('USER ' + buffer + '\r\n'))
+
             # if(stop_on_field):
             # response = s.recv(2048)
             # print(response)
@@ -68,11 +75,16 @@ class PopSmtp:
             print(responses[-1])
 
             if (field != "pass"):
-                print('PASS pass')
-                s.sendall('PASS pass\r\n')
+                print(Tcp.prepare_command('PASS pass'))
+                s.sendall(Tcp.prepare_command('PASS pass\r\n'))
             else:
                 print('PASS [' + strlen + ' bytes]')
-                s.sendall('PASS ' + Tcp.prepare_command(buffer.decode('latin-1')) + '\r\n')
+
+                if not isinstance(buffer, str) :
+                    s.sendall(Tcp.prepare_command('PASS ' + buffer.decode('latin-1') + '\r\n'))
+                else:
+                    s.sendall(Tcp.prepare_command('PASS ' + buffer + '\r\n'))
+
             # if(stop_on_field):
             # response = s.recv(2048)
             # print(response)
@@ -84,7 +96,11 @@ class PopSmtp:
 
             if (field != "user" and field != "pass"):
                 print(field + ' [' + strlen + ' bytes]')
-                s.sendall(field + ' ' + Tcp.prepare_command(buffer.decode('latin-1')) + '\r\n')
+
+                if not isinstance(buffer, str):
+                    s.sendall(Tcp.prepare_command(field + ' ' + buffer.decode('latin-1') + '\r\n'))
+                else:
+                    s.sendall(Tcp.prepare_command(field + ' ' + buffer + '\r\n'))
 
                 # if(stop_on_field):
                 # response = s.recv(2048)

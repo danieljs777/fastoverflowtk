@@ -38,6 +38,8 @@ class Ftp:
     def inject(self, remoteip, port, field, buffer, stop_on_field):
         responses = []
 
+        field = field.lower()
+
         try:
 
             if (stop_on_field == None):
@@ -71,7 +73,11 @@ class Ftp:
                 s.sendall(Tcp.prepare_command("USER " + self.auth_user + "\r\n"))
             else:
                 print(Tcp.prepare_command('USER [' + strlen + ' bytes]'))
-                s.sendall(Tcp.prepare_command('USER ' + buffer.decode('latin-1') + '\r\n'))
+
+                if not isinstance(buffer, str):
+                    s.sendall(Tcp.prepare_command('USER ' + buffer.decode('latin-1') + '\r\n'))
+                else:
+                    s.sendall(Tcp.prepare_command('USER ' + buffer + '\r\n'))
 
             # if(stop_on_field):
             # response = s.recv(2048)
@@ -87,7 +93,11 @@ class Ftp:
                 s.sendall(Tcp.prepare_command('PASS ' + self.auth_pass + '\r\n'))
             else:
                 print(Tcp.prepare_command('PASS [' + strlen + ' bytes]'))
-                s.sendall(Tcp.prepare_command('PASS ' + buffer.decode('latin-1') + '\r\n'))
+
+                if not isinstance(buffer, str):
+                    s.sendall(Tcp.prepare_command('PASS ' + buffer.decode('latin-1') + '\r\n'))
+                else:
+                    s.sendall(Tcp.prepare_command('PASS ' + buffer + '\r\n'))
 
             # if(stop_on_field):
             # response = s.recv(2048)
@@ -119,7 +129,10 @@ class Ftp:
                 # print(type(field))
                 # print(type(buffer))
 
-                cmd = Tcp.prepare_command(field + ' ' + buffer.decode('latin-1') + '\r\n')
+                if not isinstance(buffer, str):
+                    cmd = Tcp.prepare_command(field + ' ' + buffer.decode('latin-1') + '\r\n')
+                else:
+                    cmd = Tcp.prepare_command(field + ' ' + buffer + '\r\n')
 
                 s.sendall(cmd)
 
