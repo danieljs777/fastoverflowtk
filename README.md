@@ -1,5 +1,5 @@
 # FastOverflow ToolKit
-I made this toolkit whilst studying Buffer Overflow Techniques. This toolkit is composed by Memory fuzzer, BadChars Testing, Exploitation process automation and soon I will release the Exploit Generator. 
+I made this toolkit whilst studying Buffer Overflow Techniques. This toolkit is composed by Memory fuzzer, BadChars Testing, Exploitation process automation and soon I will release the Exploit Generator. I intend to keep this project very active. Please pull changes before every use.
 
 It works through FTP, SMTP, POP, HTTP protocols as well file outputs for playlists exploiting customized variables/commands. 
 
