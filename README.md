@@ -1,11 +1,14 @@
 # FastOverflow ToolKit
-I made this toolkit whilst studying Buffer Overflow Techniques. This toolkit is composed by Memory fuzzer, BadChars Testing, Exploitation process automation and soon I will release the Exploit Generator. I intend to keep this project very active. Please pull changes before every use.
+I wrote this toolkit whilst studying Buffer Overflow Techniques. 
 
-It works through FTP, SMTP, POP, HTTP protocols as well file outputs for playlists exploiting customized variables/commands. 
+It works through FTP, SMTP, POP, HTTP protocols as well file outputs for playlists exploiting customized variables/commands and supports Vanilla (classic) buffer overflow technique, SEH ByPass and Egghunting. Additionaly, the toolkit makes use of session files and you can restore your walkthrough by default.  
 
-The toolkit supports Vanilla (classic) buffer overflow technique, SEH ByPass and Egghunting. Additionaly, the toolkit makes use of session files and you can restore your walkthrough by default.
+This toolkit is composed by Memory fuzzer, BadChars Testing, Exploitation process automation and soon I will FULLY release the Exploit Generator (right now only Vanilla Exploit Generation). I intend to keep this project very active. Please pull changes before any use.
 
-Payloads can be generated through MSFVENOM (shell_reverse_tcp or meterpreter_reverse_tcp) OR you can use your own ASM files.
+The toolkit is NOT RECOMMENDED for script kiddies! 
+
+
+Payloads can be generated through MSFVENOM (shell_reverse_tcp / meterpreter_reverse_tcp) OR you can use your own ASM files.
 ## Prerequisites
 
 Python 3.8, Metasploit, nasm, nasm_shell

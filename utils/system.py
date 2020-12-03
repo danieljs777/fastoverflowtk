@@ -224,6 +224,43 @@ class System:
         #     else:
         #         session_file.write(unicode(json.dumps(session, ensure_ascii=False, encoding='utf8')))
 
+
+    @staticmethod
+    def generate_exploit(config):
+
+        adapter = System.get_adapter(config)
+        stream_func = getattr(adapter, 'output_stream')
+        output_stream = stream_func(config.field)
+
+        if os.path.isfile("templates/classic.tpl"):
+            try:
+                if (sys.version_info >= (3, 0)):
+                    with io.open("templates/classic.tpl", 'rb', buffering=0) as default_skel:
+                        source = (default_skel.readall())
+                        # line = default_skel.readline()
+                        # cnt = 1
+                        # while line:
+                        source = source.replace(b"{{{REMOTEIP}}}", config.remoteip.encode('latin1'))
+                        source = source.replace(b"{{{REMOTEPORT}}}", str(config.remoteport).encode('latin1'))
+                        source = source.replace(b"{{{OFFSET}}}", str(config.offset).encode('latin1'))
+                        source = source.replace(b"{{{JMPESP_ADD}}}", str(config.jmpesp_add).encode('latin1'))
+                        source = source.replace(b"{{{NOPS}}}", str(config.nops).encode('latin1'))
+                        source = source.replace(b"{{{COMMUNICATION_FLOW}}}", str(output_stream).encode('latin1'))
+
+                        if (config.verbose_lv >= 1):
+                            print("=" * 30)
+                            print(source)
+                            print("=" * 30)
+
+                    default_skel.close()
+
+            except Exception as e:
+                logging.exception(e)
+
+        System.file_write("sessions/exploit_" + config.remoteip + "_" + str(config.remoteport) + "_" + config.field + ".py", source)
+
+        print("Exploit saved to : sessions/exploit_" + config.remoteip + "_" + str(config.remoteport) + "_" + config.field + ".py !")
+
     @staticmethod
     def load_session(config):
 
@@ -355,12 +392,7 @@ class System:
             else:
                 file.write(data)
 
-        # f = open(filename, "w")
-        #
-        # if not isinstance(data, str):
-        #
-        # f.write(data)
-        # f.close()
+        file.close()
 
     @staticmethod
     def execute(command, args):

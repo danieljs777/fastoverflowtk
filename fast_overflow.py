@@ -41,7 +41,11 @@ class FastOverflow:
         if (self.config.mode != "file"):
             print("[6] Search BadChars")
 
-        print("[9] Show Exploit Session")
+        print("[8] Show Exploit Session")
+
+        if (self.config.mode == "ftp" or self.config.mode == "popsmtp"):
+            print("[9] Generate Exploit")
+
         print("[0] Exit")
 
         process = System.input("Select one above :")
@@ -58,9 +62,11 @@ class FastOverflow:
             print(self.fuzz_fields())
         elif (process == "6"):
             self.search_badchars()
-        elif (process == "9"):
+        elif (process == "8"):
             System.show_session(self.config)
             self.menu()
+        elif (process == "9"):
+            System.generate_exploit(self.config)
         elif (process == "0"):
             sys.exit(0)
 

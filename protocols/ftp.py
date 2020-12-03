@@ -195,3 +195,27 @@ class Ftp:
                 buffer = "A" * size
 
         return size
+
+    def output_stream(self, field):
+
+        stream = ""
+
+        if (field != "user"):
+            stream += (" " * 4) + 's.sendall(("USER "' + self.auth_user + '"\\r\\n" + ").encode("latin-1"))\r\n'
+            stream += (" " * 4) + "print(s.recv(2048))\r\n"
+        else:
+            stream += (" " * 4) + 's.sendall(("USER ").encode("latin1") + buffer + ("\\r\\n").encode("latin-1"))\r\n'
+            stream += (" " * 4) + "print(s.recv(2048))\r\n"
+
+        if (field != "pass"):
+            stream += (" " * 4) + 's.sendall(("PASS ' + self.auth_pass + '\\r\\n").encode("latin-1"))\r\n'
+            stream += (" " * 4) + "print(s.recv(2048))\r\n"
+        else:
+            stream += (" " * 4) + 's.sendall(("PASS ").encode("latin1") + buffer + ("\\r\\n").encode("latin-1"))\r\n'
+            stream += (" " * 4) + "print(s.recv(2048))\r\n"
+
+        if (field != "user" and field != "pass"):
+            stream += (" " * 4) + 's.sendall(("' + field + ' ").encode("latin1") + buffer + ("\\r\\n").encode("latin-1"))\r\n'
+            stream += (" " * 4) + "print(s.recv(2048))\r\n"
+
+        return stream
