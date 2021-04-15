@@ -82,7 +82,7 @@ class Http():
             request_data = field + "=" + buffer
 
         request_header += "Content-Length: " + str(len(request_data))
-        request_header += "\r\n\r\n"
+        request_header += "\r\n" * 2
 
         if (self.config.verbose_lv == 2):
             print("=" * 50)

