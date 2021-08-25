@@ -6,6 +6,9 @@
 # print binascii.unhexlify(hex_string_to_hex_value("7CA58265"))
 
 class HexUtil:
+    def __init__(self):
+        pass
+
     @staticmethod
     def hex_string_to_bin_string(input):
         lookup = {"0": "0000", "1": "0001", "2": "0010", "3": "0011", "4": "0100", "5": "0101", "6": "0110",
