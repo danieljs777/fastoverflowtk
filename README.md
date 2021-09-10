@@ -1,5 +1,5 @@
 # FastOverflow ToolKit
-I wrote this toolkit whilst studying Buffer Overflow Techniques. 
+I started wroting this toolkit whilst studying Buffer Overflow Techniques.
 
 It works through FTP, SMTP, POP, HTTP protocols as well file outputs for playlists exploiting customized variables/commands and supports Vanilla (classic) buffer overflow technique, SEH ByPass and Egghunting. Additionaly, the toolkit makes use of session files and you can restore your walkthrough by default.  
 
