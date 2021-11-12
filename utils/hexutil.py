@@ -6,8 +6,6 @@
 # print binascii.unhexlify(hex_string_to_hex_value("7CA58265"))
 
 class HexUtil:
-    def __init__(self):
-        pass
 
     @staticmethod
     def hex_string_to_bin_string(input):

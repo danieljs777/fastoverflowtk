@@ -1,8 +1,10 @@
 import os
+import string
 import sys
 import socket
 import time
 import getopt
+from random import random
 from struct import *
 import subprocess
 import re
@@ -40,9 +42,13 @@ class PopSmtp:
                 print(buffer)
                 print(("=" * 100) + " BUFFER END")
 
-            strlen = str(len(buffer))
+            if not isinstance(buffer, str):
+                strlen = str(len(buffer.decode('latin-1').strip()))
+            else:
+                strlen = str(len(buffer.strip()))
 
-            print("[!] Injecting %s bytes" % strlen)
+            print("\r\n[!] Injecting %s bytes on %s" % (strlen, field.upper()))
+
             s = Tcp.connect(remoteip, port)
 
             if (self.config.verbose_lv == 2):
@@ -118,46 +124,43 @@ class PopSmtp:
 
         return responses
 
-    def fuzzer(self, remoteip, port, field, start_size, inc):
-        if (inc == None):
-            inc = 100
-
-        if (start_size == None):
-            size = 100
-        else:
-            size = start_size
-
-        buffer = "A" * size
+    def fuzzer(self, remoteip, port, field, start, stop, step):
 
         if (field == None):
             field = "user"
 
-        streaming = [True]
-        while len(streaming) > 0:
+        for size in range(int(start), int(stop), int(step)):
 
-            streaming = (self.inject(remoteip, port, field, buffer, None))
+            streaming = [True]
+            while len(streaming) > 0:
+                if (self.config.fuzzer_type.lower() == "custom"):
+                    self.config.fuzzer_buffer = ''.join(random.choices(string.ascii_uppercase + string.digits, k=size))
+                else:
+                    self.config.fuzzer_buffer = "A" * size
 
-            if (len(streaming) > 0):
-                _stream = streaming[-1].decode('latin-1').strip()
+                streaming = (self.inject(remoteip, port, field, self.config.fuzzer_buffer, None))
 
-                _response = _stream.split(' ')
+                if (len(streaming) > 0):
+                    _stream = streaming[-1].decode('latin-1').strip()
 
-                # print("[!] ERROR COMMUNICATING TO THE SERVICE " + "|".join(streaming))
-                # responsecode = int(_response[0].strip())
+                    _response = _stream.split(' ')
 
-                # # 6xx	Protected reply
-                # if responsecode > 599:
-                # 	print(base64_decode(_response.join(' ')))
+                    # print("[!] ERROR COMMUNICATING TO THE SERVICE " + "|".join(streaming))
+                    # responsecode = int(_response[0].strip())
 
-                # #5xx	Permanent Negative Completion reply
-                # if responsecode > 499:
-                # 	return size
-                # 	break;
+                    # # 6xx	Protected reply
+                    # if responsecode > 599:
+                    # 	print(base64_decode(_response.join(' ')))
 
-                time.sleep(1)
+                    # #5xx	Permanent Negative Completion reply
+                    # if responsecode > 499:
+                    # 	return size
+                    # 	break;
 
-                size += inc
-                buffer = "A" * size
+                    time.sleep(1)
+
+                    size += step
+                    # buffer = "A" * size
 
         return size
 

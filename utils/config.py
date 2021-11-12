@@ -3,7 +3,7 @@ import sys
 
 class Config:
 
-    localip = "172.16.18.1"
+    localip = "192.168.105.1"
     localport = 7777
     verbose_lv = 2
 
@@ -20,11 +20,16 @@ class Config:
     user = "anonymous"
     passwd = "123@test.com"
 
+    fuzzer_type = ""
+    fuzzer_buffer = "A"
+    offset = 1
+    overflow = 0
+
+    session_ignore = False
+
     badchars = ""
     shellcode = ""
 
-    offset = 1
-    overflow = 0
     # jmpesp_add = ""
     # eip = ""
     # esp = ""

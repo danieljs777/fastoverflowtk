@@ -53,7 +53,7 @@ class Http():
             if (isinstance(shellcode, (bytes))):
                 request_header = self.config.http_method + " /" + str(buffer.decode("latin-1")) + " HTTP/1.1\r\n"
             else:
-                request_header = self.config.http_method + " /" + buffer + " HTTP/1.1\r\n"
+                request_header = self.config.http_method + " /" + str(buffer) + " HTTP/1.1\r\n"
         else:
             request_header = self.config.http_method + " /" + self.config.http_uri + " HTTP/1.1\r\n"
 
@@ -72,7 +72,7 @@ class Http():
 
                 request_header += key + ": " + str(header_skeleton[key]) + "\r\n"
 
-        # Todo: Implement cookie buffer in conjunction with line 45
+        # Todo: Implement cookie buffer in conjunction with shellcode
         # if ("cookie" in field.lower()):
         #     field_default = True
         #     request_header += field + "=" + buffer + "\r\n"
@@ -127,18 +127,17 @@ class Http():
     ############################
     ## HTTP DATA FUZZER
 
-    def fuzzer(self, ip, port, field, start_size, inc):
+    def fuzzer(self, ip, port, field, start, stop, step):
 
-        if (inc == None):
-            inc = 100
+        size = 0
 
-        if (start_size == None):
-            size = 100
-        else:
-            size = start_size
+        for size in range(int(start), int(stop) + int(step), int(step)):
 
-        streaming = [True]
-        while len(streaming) > 0:
+            # if (self.config.fuzzer_type.lower() == "printables"):
+            #     fuzzer_buffer = ''.join(random.choices(string.ascii_uppercase + string.digits, k=size))
+            # else:
+            fuzzer_buffer = "A" * size
+
             self.request = self.make_request(ip, port, field, None, None, size)
 
             print('[.] Trying to overflow [' + str(size) + ' bytes]')
@@ -162,9 +161,6 @@ class Http():
                 # 	break;
 
                 time.sleep(1)
-
-                size += inc
-                buffer = "A" * size
 
         return size
 

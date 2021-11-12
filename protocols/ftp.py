@@ -1,8 +1,10 @@
 import os
+import string
 import sys
 import socket
 import time
 import getopt
+import random
 from struct import *
 import subprocess
 import re
@@ -11,7 +13,6 @@ from past.builtins import execfile
 from protocols import *
 from buffers import *
 from protocols.tcp import Tcp
-
 
 class Ftp:
 
@@ -50,8 +51,12 @@ class Ftp:
                 print(buffer)
                 print(("=" * 100) + " BUFFER END")
 
-            strlen = str(len(buffer))
-            print("[!] Injecting %s bytes" % strlen)
+            if not isinstance(buffer, str):
+                strlen = str(len(buffer.decode('latin-1').strip()))
+            else:
+                strlen = str(len(buffer.strip()))
+
+            print("[!] Injecting %s bytes on %s" % (strlen, field.upper()))
 
             s = Tcp.connect(remoteip, port)
 
@@ -61,18 +66,21 @@ class Ftp:
             if (s == None):
                 return responses
 
-            print(s.recv(2048))
-            print("[.] Trying to overflow %s ..." % field)
+            if (self.config.verbose_lv < 0):
+                print(s.recv(2048))
 
             # if (field == "preauth"):
             #     print('[' + strlen + ' bytes]')
             #     s.send(buffer)
 
             if (field != "user"):
-                print(Tcp.prepare_command('USER ' + self.auth_user))
+                if (self.config.verbose_lv > 0):
+                    print(Tcp.prepare_command('USER ' + self.auth_user))
+
                 s.sendall(Tcp.prepare_command("USER " + self.auth_user + "\r\n"))
             else:
-                print(Tcp.prepare_command('USER [' + strlen + ' bytes]'))
+                if (self.config.verbose_lv > 0):
+                    print(Tcp.prepare_command('USER [' + strlen + ' bytes]'))
 
                 if not isinstance(buffer, str):
                     s.sendall(Tcp.prepare_command('USER ' + buffer.decode('latin-1') + '\r\n'))
@@ -86,13 +94,17 @@ class Ftp:
             # 	return response
 
             responses.append(s.recv(2048))
-            print(responses[-1])
+            if (self.config.verbose_lv > 0):
+                print(responses[-1])
 
             if (field != "pass"):
-                print(Tcp.prepare_command('PASS ' + self.auth_pass))
+                if (self.config.verbose_lv > 0):
+                    print(Tcp.prepare_command('PASS ' + self.auth_pass))
+
                 s.sendall(Tcp.prepare_command('PASS ' + self.auth_pass + '\r\n'))
             else:
-                print(Tcp.prepare_command('PASS [' + strlen + ' bytes]'))
+                if (self.config.verbose_lv > 0):
+                    print(Tcp.prepare_command('PASS [' + strlen + ' bytes]'))
 
                 if not isinstance(buffer, str):
                     s.sendall(Tcp.prepare_command('PASS ' + buffer.decode('latin-1') + '\r\n'))
@@ -106,7 +118,8 @@ class Ftp:
             # 	return response
 
             responses.append(s.recv(2048))
-            print(responses[-1])
+            if (self.config.verbose_lv == 2):
+                print(responses[-1])
 
             if (field != "user" and field != "pass"):
                 print(field + ' [ ' + strlen + ' bytes ] ')
@@ -142,7 +155,7 @@ class Ftp:
                 # 	s.close()
                 # 	return response
                 responses.append(s.recv(2048))
-                print(responses[-1])
+                print(responses)
 
             s.close()
 
@@ -153,29 +166,31 @@ class Ftp:
         return responses
 
     # FTP FUZZER
-    def fuzzer(self, remoteip, port, field, start_size, inc):
-        if (inc == None):
-            inc = 100
-
-        if (start_size == None):
-            size = 100
-        else:
-            size = start_size
-
-        buffer = "A" * size
+    def fuzzer(self, remoteip, port, field, start, stop, step):
 
         if (field == None):
             field = "user"
 
-        streaming = [True]
-        while len(streaming) > 0:
+        size = 0
 
-            streaming = (self.inject(remoteip, port, field, buffer, None))
+        for size in range(int(start), int(stop) + int(step), int(step)):
+
+            if (self.config.fuzzer_type.lower() == "printables"):
+                fuzzer_buffer = ''.join(random.choices(string.ascii_uppercase + string.digits, k=size))
+            else:
+                fuzzer_buffer = "A" * size
+
+            streaming = (self.inject(remoteip, port, field, fuzzer_buffer, None))
+
+            print(streaming)
 
             if (len(streaming) > 0):
                 _stream = streaming[-1].decode('latin-1').strip()
-
                 _response = _stream.split(' ')
+                time.sleep(1)
+
+            else:
+                break
 
                 # print("[!] ERROR COMMUNICATING TO THE SERVICE " + "|".join(streaming))
                 # responsecode = int(_response[0].strip())
@@ -189,10 +204,8 @@ class Ftp:
                 # 	return size
                 # 	break;
 
-                time.sleep(1)
-
-                size += inc
-                buffer = "A" * size
+                #size += step
+                # self.config.fuzzer_buffer = "A" * size
 
         return size
 

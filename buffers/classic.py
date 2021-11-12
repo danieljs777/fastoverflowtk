@@ -6,7 +6,7 @@ import socket
 from struct import pack
 
 from fast_overflow import FastOverflow
-from utils.hex import HexUtil
+from utils.hexutil import HexUtil
 from utils.system import *
 
 class Classic:

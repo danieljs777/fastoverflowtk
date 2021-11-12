@@ -5,7 +5,7 @@ import sys
 from struct import pack
 
 from protocols.http import Http
-from utils.hex import HexUtil
+from utils.hexutil import HexUtil
 from utils.system import System
 
 
@@ -163,8 +163,8 @@ class EggHunter:
             #     self.config.egg = _egg
             #     self.hunter = System.input("[?] Change default EggHunter : ")
 
-            gonext = System.input("[?] Do you wanna skip testing the EggHunter ? [Y/n]")
-            if (gonext.upper() == "N"):
+            gonext = System.input("[?] Do you wanna test the EggHunter ? [Y/n]")
+            if (gonext.upper() == "Y"):
                 if (self.config.mode == "http"):
                     buffer = adapter.make_request(self.config.remoteip, self.config.remoteport, self.config.field,
                                                   self.stack_fill(True), self.config.shellcode, self.config.offset)

